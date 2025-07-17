@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+module.exports = {
   webpack: (config, { isServer }) => {
     // Only add these configurations for server-side builds
     if (isServer) {
@@ -15,5 +15,3 @@ const nextConfig = {
     return config;
   },
 };
-
-export default nextConfig;
