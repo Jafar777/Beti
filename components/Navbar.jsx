@@ -142,7 +142,10 @@ export default function Navbar({session}) {
                         <span>{t.dashboard || 'Dashboard'}</span>
                       </button>
                       <button
-                        onClick={() => signOut()}
+                        onClick={async () => {
+                        await signOut({ redirect: false });
+                        window.location.href = "/";
+                        }}
                         className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                       >
                         <CiLogout className="mr-2" />
@@ -207,7 +210,11 @@ export default function Navbar({session}) {
                   <span>{t.dashboard || 'Dashboard'}</span>
                 </button>
                 <button
-                  onClick={() => signOut()}
+                  onClick={async () => {
+                 await signOut({ redirect: false });
+                window.location.href = "/";
+                 }}
+
                   className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg"
                 >
                   <CiLogout className="h-6 w-6" />
