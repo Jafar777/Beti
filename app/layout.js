@@ -1,7 +1,6 @@
 import './globals.css';
-import { LanguageProvider } from '@/context/LanguageContext';
-import ClientProvider from '@/components/ClientProvider';
-import CustomSessionProvider from '@/components/SessionProvider';
+
+import ClientProviders from './ClientProviders'; // Import the new wrapper
 
 export const metadata = {
   title: 'Beti | بيتي',
@@ -13,13 +12,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <CustomSessionProvider>
-          <LanguageProvider>
-            <ClientProvider>
-              {children}
-            </ClientProvider>
-          </LanguageProvider>
-        </CustomSessionProvider>
+        <ClientProviders>
+          
+            {children}
+         
+        </ClientProviders>
       </body>
     </html>
   );
