@@ -1,7 +1,9 @@
 'use client';
 import { useSession } from "next-auth/react";
-import { useLanguage } from "@/context/LanguageContext"; // Updated import path
+import { useLanguage } from "@/context/LanguageContext";
 import GoogleMapComponent from "@/components/GoogleMap";
+import FeaturedListings from "@/components/FeaturedListings";
+import AllListings from "@/components/AllListings";
 
 export default function Home() {
   const { data: session } = useSession();
@@ -16,8 +18,14 @@ export default function Home() {
       <div className="mb-8">
         <GoogleMapComponent />
       </div>
+      
+      {/* Featured Listings Section */}
+      <FeaturedListings />
+      
+      {/* All Listings Section */}
       <div>
         <h1 className="text-[#375171] text-3xl font-bold mb-6 text-center">{t.list}</h1>
+        <AllListings />
       </div>
     </div>
   );
