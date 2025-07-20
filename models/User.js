@@ -33,9 +33,23 @@ const userSchema = new mongoose.Schema({
     type: String, 
     default: '' 
   },
-}, { 
-  timestamps: true 
-});
+    subscription: {
+    plan: { 
+      type: String, 
+      enum: ['free', 'premium'], 
+      default: 'free' 
+    },
+    listingsUsed: { 
+      type: Number, 
+      default: 0 
+    },
+    featuredListings: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Property'
+    }]
+  },
+  image: { type: String, default: '' },
+}, { timestamps: true });
 
 // Create the model
 const User = mongoose.models.User || mongoose.model('User', userSchema);

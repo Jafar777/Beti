@@ -4,11 +4,28 @@ import { useLanguage } from "@/context/LanguageContext";
 import GoogleMapComponent from "@/components/GoogleMap";
 import FeaturedListings from "@/components/FeaturedListings";
 import AllListings from "@/components/AllListings";
+import { useState, useEffect } from 'react';
+
 
 export default function Home() {
   const { data: session } = useSession();
   const { language, translations } = useLanguage();
+    const [properties, setProperties] = useState([]);
+
   const t = translations[language];
+
+   useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const res = await fetch('/api/properties');
+        const data = await res.json();
+        setProperties(data);
+      } catch (error) {
+        console.error('Failed to fetch properties:', error);
+      }
+    };
+    fetchProperties();
+  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -16,7 +33,7 @@ export default function Home() {
       
       {/* Google Map Component */}
       <div className="mb-8">
-        <GoogleMapComponent />
+        <GoogleMapComponent properties={properties} />
       </div>
       
       {/* Featured Listings Section */}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import Link from 'next/link';
 import { CiCirclePlus } from "react-icons/ci";
+import PropertyCard from '@/components/PropertyCard';
 
 export default function ListingsPage() {
   const { data: session, status } = useSession();
@@ -18,35 +19,39 @@ export default function ListingsPage() {
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push('/auth/signin');
+      return;
     }
     
-    // Fetch user's listings (mock data for example)
-    const fetchListings = async () => {
-      try {
-        // In real app, you would fetch from your API
-        // const response = await fetch(`/api/listings?userId=${session.user.id}`);
-        // const data = await response.json();
-        
-        // Mock data
-        const mockListings = [
-          { id: 1, title: "Modern Apartment in Damascus", status: "active", price: "$150,000" },
-          { id: 2, title: "Villa in Latakia", status: "pending", price: "$350,000" },
-          { id: 3, title: "Office Space in Aleppo", status: "draft", price: "$200,000" },
-        ];
-        
-        setListings(mockListings);
-        setLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch listings:", error);
-        setLoading(false);
-      }
-    };
-    
-    if (session) {
+    if (status === "authenticated") {
       fetchListings();
     }
-  }, [session, status, router]);
+  }, [status, router]);
 
+  const fetchListings = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/properties?myListings=true', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.accessToken}`
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch listings');
+      }
+      
+      const data = await response.json();
+      setListings(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Failed to fetch listings:", error);
+      setLoading(false);
+    }
+  };
+  
   if (loading || status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -54,7 +59,10 @@ export default function ListingsPage() {
       </div>
     );
   }
-
+  const handleCardClick = (property) => {
+    // Navigate to property detail page
+    router.push(`/properties/${property._id}`);
+  };
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
@@ -63,7 +71,7 @@ export default function ListingsPage() {
         </h1>
         <Link 
           href="/dashboard/listings/new" 
-          className="bg-green-600 text-white px-4 py-3 rounded-lg flex items-center"
+          className="bg-green-600 text-white px-4 py-3 rounded-lg flex items-center hover:bg-green-700 transition-colors"
         >
           <CiCirclePlus className="mr-2 text-xl" />
           <span>{t.addProperty || 'Add Property'}</span>
@@ -81,40 +89,21 @@ export default function ListingsPage() {
           </p>
           <Link 
             href="/dashboard/listings/new" 
-            className="bg-[#375171] text-white px-4 py-2 rounded-lg inline-block"
+            className="bg-[#375171] text-white px-4 py-2 rounded-lg inline-block hover:bg-[#2d4360] transition-colors"
           >
             {t.addFirstProperty || 'Add your first property'}
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {listings.map((listing) => (
-            <div key={listing.id} className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-              <div className="mb-4">
-                <span className={`inline-block px-2 py-1 text-xs rounded-full ${
-                  listing.status === 'active' 
-                    ? 'bg-green-100 text-green-800' 
-                    : listing.status === 'pending' 
-                      ? 'bg-yellow-100 text-yellow-800' 
-                      : 'bg-gray-100 text-gray-800'
-                }`}>
-                  {listing.status}
-                </span>
-              </div>
-              <h3 className="text-xl font-bold mb-2">{listing.title}</h3>
-              <p className="text-lg font-semibold text-[#375171] mb-4">{listing.price}</p>
-              <div className="flex space-x-2">
-                <Link 
-                  href={`/dashboard/listings/${listing.id}`}
-                  className="text-[#375171] border border-[#375171] px-3 py-1 rounded hover:bg-[#375171] hover:text-white"
-                >
-                  {t.edit || 'Edit'}
-                </Link>
-                <button className="text-gray-500 hover:text-red-500">
-                  {t.delete || 'Delete'}
-                </button>
-              </div>
-            </div>
+          {listings.map((property) => (
+            <PropertyCard 
+              key={property._id} 
+              property={property} 
+              basePath="/dashboard/listings"
+              showEdit={true}
+              onCardClick={handleCardClick}
+            />
           ))}
         </div>
       )}

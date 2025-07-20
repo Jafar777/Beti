@@ -108,14 +108,7 @@ const FeaturedListings = () => {
         ))}
       </div>
       
-      <div className="text-center mt-8">
-        <Link 
-          href="/properties" 
-          className="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium"
-        >
-          {t.viewAllProperties || 'View All Properties'}
-        </Link>
-      </div>
+
     </div>
   );
 };

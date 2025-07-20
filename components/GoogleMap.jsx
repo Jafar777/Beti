@@ -1,10 +1,9 @@
 'use client';
-import { GoogleMap, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { FaChevronCircleRight, FaChevronCircleLeft } from "react-icons/fa";
 import { useLanguage } from '@/context/LanguageContext';
 
-// Governorates data with coordinates, zoom levels, and names in both languages
 const governorates = [
   { id: 'damascus', name: { en: 'Damascus', ar: 'دمشق' }, center: { lat: 33.510414, lng: 36.278336 }, zoom: 12 },
   { id: 'aleppo', name: { en: 'Aleppo', ar: 'حلب' }, center: { lat: 36.202105, lng: 37.134260 }, zoom: 12 },
@@ -22,7 +21,6 @@ const governorates = [
   { id: 'damascus-countryside', name: { en: 'Damascus Countryside', ar: 'ريف دمشق' }, center: { lat: 33.516667, lng: 36.300000 }, zoom: 10 },
 ];
 
-// Define Syria boundaries
 const syriaBounds = {
   north: 37.3,
   south: 32.3,
@@ -30,7 +28,6 @@ const syriaBounds = {
   east: 42.3
 };
 
-// Roadmap styles to show street names and labels
 const roadmapStyles = [
   {
     "featureType": "administrative.locality",
@@ -54,14 +51,11 @@ const roadmapStyles = [
   }
 ];
 
-// Enhanced satellite view styles to show street names and labels
 const satelliteStyles = [
   {
     "featureType": "all",
     "elementType": "labels",
-    "stylers": [
-      { "visibility": "on" }
-    ]
+    "stylers": [{ "visibility": "on" }]
   },
   {
     "featureType": "administrative",
@@ -135,15 +129,15 @@ const satelliteStyles = [
   }
 ];
 
-export default function GoogleMapComponent() {
+export default function GoogleMapComponent({ properties = [] }) {
   const [mapType, setMapType] = useState('roadmap');
   const [activeGov, setActiveGov] = useState('damascus');
   const [map, setMap] = useState(null);
   const [isPanelOpen, setIsPanelOpen] = useState(true);
   const panelRef = useRef(null);
   const [mapStyles, setMapStyles] = useState(roadmapStyles);
+  const [selectedProperty, setSelectedProperty] = useState(null);
   
-  // Language context
   const languageContext = useLanguage();
   const language = languageContext?.language || 'en';
   const translations = languageContext?.translations || {};
@@ -154,18 +148,15 @@ export default function GoogleMapComponent() {
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   });
 
-  // Set map instance when loaded
   const onLoad = useCallback(function callback(map) {
     const bounds = new window.google.maps.LatLngBounds(
       new window.google.maps.LatLng(syriaBounds.south, syriaBounds.west),
       new window.google.maps.LatLng(syriaBounds.north, syriaBounds.east)
     );
     
-    // Focus on Damascus first
     map.panTo(governorates[0].center);
     map.setZoom(governorates[0].zoom);
     
-    // Restrict map to Syria boundaries
     map.setOptions({
       restriction: {
         latLngBounds: bounds,
@@ -177,14 +168,12 @@ export default function GoogleMapComponent() {
     setMap(map);
   }, []);
 
-  // Toggle between map and satellite view
   const toggleMapType = () => {
     const newType = mapType === 'roadmap' ? 'hybrid' : 'roadmap';
     setMapType(newType);
     setMapStyles(newType === 'hybrid' ? satelliteStyles : roadmapStyles);
   };
 
-  // Zoom to selected governorate
   const zoomToGovernorate = (govId) => {
     const gov = governorates.find(g => g.id === govId);
     if (gov && map) {
@@ -195,16 +184,13 @@ export default function GoogleMapComponent() {
     }
   };
 
-  // Toggle panel visibility
   const togglePanel = () => {
     setIsPanelOpen(!isPanelOpen);
   };
 
-  // Close panel when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (event.target.closest('.panel-toggle-button')) return;
-      
       if (panelRef.current && !panelRef.current.contains(event.target)) {
         setIsPanelOpen(false);
       }
@@ -220,8 +206,7 @@ export default function GoogleMapComponent() {
 
   return isLoaded ? (
     <div className="relative rounded-xl overflow-hidden shadow-lg">
-      {/* Collapsible Governorate Panel */}
-      {isPanelOpen ? (
+      {isPanelOpen && (
         <div 
           ref={panelRef}
           className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-md p-3 w-[200px] max-w-[80vw] transition-all duration-300"
@@ -245,9 +230,8 @@ export default function GoogleMapComponent() {
             ))}
           </div>
         </div>
-      ) : null}
+      )}
       
-      {/* Toggle Panel Button - Always visible */}
       <button 
         onClick={togglePanel}
         className={`absolute z-10 bg-[#375171] p-2 rounded-full shadow-md hover:bg-[#2d4360] panel-toggle-button ${
@@ -281,7 +265,53 @@ export default function GoogleMapComponent() {
           styles: mapStyles,
           gestureHandling: "greedy"
         }}
-      />
+      >
+        {properties.map(property => {
+          const position = property.pinLocation || { 
+            lat: property.latitude, 
+            lng: property.longitude 
+          };
+          
+          return (
+            <Marker
+              key={property._id}
+              position={position}
+              icon={{
+                path: "M10,0C4.5,0,0,4.5,0,10s10,20,10,20s10-14.5,10-20S15.5,0,10,0z M10,15c-2.8,0-5-2.2-5-5s2.2-5,5-5s5,2.2,5,5S12.8,15,10,15z",
+                fillColor: property.isFeatured ? "gold" : "red",
+                fillOpacity: 1,
+                strokeColor: "#000",
+                strokeWeight: 1,
+                scale: 1.5,
+                anchor: new window.google.maps.Point(10, 20),
+              }}
+              onClick={() => setSelectedProperty(property)}
+            />
+          );
+        })}
+        
+        {selectedProperty && (
+          <InfoWindow
+            position={selectedProperty.pinLocation || { 
+              lat: selectedProperty.latitude, 
+              lng: selectedProperty.longitude 
+            }}
+            onCloseClick={() => setSelectedProperty(null)}
+          >
+            <div className="max-w-xs p-2">
+              <h3 className="font-bold text-lg mb-1">{selectedProperty.title}</h3>
+              <p className="text-gray-700">${selectedProperty.price?.toLocaleString()}</p>
+              <p className="text-gray-600 mb-2">{selectedProperty.location}</p>
+              <a 
+                href={`/properties/${selectedProperty._id}`}
+                className="text-blue-600 hover:underline"
+              >
+                View Details
+              </a>
+            </div>
+          </InfoWindow>
+        )}
+      </GoogleMap>
       
       <button
         onClick={toggleMapType}

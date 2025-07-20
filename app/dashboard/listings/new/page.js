@@ -1,8 +1,10 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
+import LocationPickerMap from '@/components/LocationPickerMap';
+import { FaTrash } from "react-icons/fa";
 
 export default function NewListingPage() {
   const { data: session } = useSession();
@@ -19,13 +21,38 @@ export default function NewListingPage() {
     bedrooms: 1,
     bathrooms: 1,
     area: '',
+    latitude: 33.510414,
+    longitude: 36.278336,
+    pinLocation: { lat: 33.510414, lng: 36.278336 }, // Added default
+
+    images: []
   });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+  const cloudinaryRef = useRef();
+  const widgetRef = useRef();
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+  
+  const handleLocationSelect = (position) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: position.lat,
+      longitude: position.lng,
+      pinLocation: position 
+    }));
+  };
+  
+  const removeImage = (index) => {
+    setFormData(prev => {
+      const newImages = [...prev.images];
+      newImages.splice(index, 1);
+      return { ...prev, images: newImages };
+    });
   };
   
   const handleSubmit = async (e) => {
@@ -34,26 +61,78 @@ export default function NewListingPage() {
     setError('');
     
     try {
-      // In real app, you would post to your API
-      // const response = await fetch('/api/listings', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     ...formData,
-      //     userId: session.user.id
-      //   })
-      // });
+      // Create the property data object
+      const propertyData = {
+        ...formData,
+        price: Number(formData.price),
+        bedrooms: Number(formData.bedrooms),
+        bathrooms: Number(formData.bathrooms),
+        latitude: Number(formData.latitude),
+        longitude: Number(formData.longitude),
+         pinLocation: formData.pinLocation
+      };
+
+      // Send to API
+      // Send to API with credentials
+      const response = await fetch('/api/properties/create', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          // Pass the session token explicitly
+          Authorization: `Bearer ${session.accessToken}`
+        },
+        credentials: 'include', // Include cookies
+        body: JSON.stringify(propertyData)
+      });
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const responseData = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to create listing');
+      }
       
       // Redirect to listings page after success
       router.push('/dashboard/listings');
     } catch (err) {
-      setError(t.networkError || 'Failed to create listing. Please try again.');
+      console.error("Submission error:", err);
+      setError(err.message || t.networkError || 'Failed to create listing. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const openCloudinaryWidget = () => {
+    // Initialize Cloudinary widget
+    cloudinaryRef.current = window.cloudinary;
+    
+    widgetRef.current = cloudinaryRef.current.createUploadWidget(
+      {
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+        sources: ['local', 'camera'],
+        multiple: true,
+        maxFiles: 10,
+        resourceType: 'image',
+        clientAllowedFormats: ['jpg', 'png', 'jpeg', 'webp'],
+        maxImageFileSize: 5000000, // 5MB
+        cropping: true,
+        croppingAspectRatio: 16/9,
+        showSkipCropButton: false
+      },
+      (error, result) => {
+        if (!error && result && result.event === 'success') {
+          console.log("Cloudinary result:", result);
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, result.info.secure_url]
+          }));
+        } else if (error) {
+          console.error("Cloudinary error:", error);
+        }
+      }
+    );
+    
+    widgetRef.current.open();
   };
 
   return (
@@ -86,21 +165,22 @@ export default function NewListingPage() {
           
           <div>
             <label className="block text-gray-700 mb-2">
-              {t.price || 'Price'} *
+              {t.price || 'Price'} (USD) *
             </label>
             <input
-              type="text"
+              type="number"
               name="price"
               value={formData.price}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-md"
               required
+              min="1"
             />
           </div>
           
           <div>
             <label className="block text-gray-700 mb-2">
-              {t.location || 'Location'} *
+              {t.location || 'Location'} (City/Area) *
             </label>
             <input
               type="text"
@@ -159,6 +239,20 @@ export default function NewListingPage() {
               required
             />
           </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.area || 'Area (m²)'} *
+            </label>
+            <input
+              type="text"
+              name="area"
+              value={formData.area}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
         </div>
         
         <div className="mb-6">
@@ -175,28 +269,93 @@ export default function NewListingPage() {
           ></textarea>
         </div>
         
+        {/* Location Picker */}
         <div className="mb-6">
           <label className="block text-gray-700 mb-2">
-            {t.area || 'Area (m²)'} *
+            {t.selectLocation || 'Select Exact Location on Map'} *
+            <span className="text-sm text-gray-500 ml-2">
+              ({t.clickToPlace || 'Click on the map to place your property'})
+            </span>
           </label>
-          <input
-            type="text"
-            name="area"
-            value={formData.area}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded-md"
-            required
+          <LocationPickerMap 
+            onLocationSelected={handleLocationSelect} 
+            initialPosition={{ lat: formData.latitude, lng: formData.longitude }}
           />
+          <div className="mt-2 text-sm text-gray-600">
+            {t.coordinates || 'Coordinates'}: 
+            {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+          </div>
+          <input 
+            type="hidden" 
+            name="latitude" 
+            value={formData.latitude} 
+          />
+          <input 
+            type="hidden" 
+            name="longitude" 
+            value={formData.longitude} 
+          />
+        </div>
+        
+        {/* Image Upload Section */}
+        <div className="mb-6">
+          <label className="block text-gray-700 mb-2">
+            {t.propertyImages || 'Property Images'} *
+            <span className="text-sm text-gray-500 ml-2">
+              ({t.max10Images || 'Max 10 images'})
+            </span>
+          </label>
+          
+          <button
+            type="button"
+            onClick={openCloudinaryWidget}
+            className="bg-[#375171] text-white py-2 px-4 rounded-md mb-4 hover:bg-[#2d4360]"
+          >
+            {t.uploadImages || 'Upload Images'}
+          </button>
+          
+          {formData.images.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+              {formData.images.map((url, index) => (
+                <div key={`image-${index}`} className="relative group border rounded-md overflow-hidden">
+                  <img 
+                    src={url} 
+                    alt={`Property ${index + 1}`} 
+                    className="w-full h-40 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                  >
+                    <FaTrash className="text-sm" />
+                  </button>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-center py-1 text-xs">
+                    {t.image || 'Image'} {index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-100 rounded-lg p-8 text-center">
+              <p className="text-gray-500">
+                {t.noImages || 'No images uploaded yet'}
+              </p>
+            </div>
+          )}
         </div>
         
         <button
           type="submit"
-          disabled={isSubmitting}
-          className="bg-[#375171] text-white py-3 px-6 rounded-md hover:bg-[#2d4360] disabled:bg-gray-400"
+          disabled={isSubmitting || formData.images.length === 0}
+          className="bg-[#375171] text-white py-3 px-6 rounded-md hover:bg-[#2d4360] disabled:bg-gray-400 w-full md:w-auto"
         >
           {isSubmitting ? (t.processing || 'Processing...') : (t.addProperty || 'Add Property')}
         </button>
       </form>
+      
+      {/* Cloudinary script */}
+      <script src="https://upload-widget.cloudinary.com/global/all.js" async />
     </div>
   );
 }

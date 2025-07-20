@@ -17,12 +17,32 @@ export const PLANS = {
   }
 };
 
-export const canCreateListing = (user) => {
-  const plan = PLANS[user.subscription.plan];
-  return user.subscription.listingsUsed < plan.listings;
+// Free plan limits
+const FREE_PLAN_LIMITS = {
+  maxListings: 3,
+  maxFeatured: 0
 };
 
+// Premium plan limits
+const PREMIUM_PLAN_LIMITS = {
+  maxListings: 20,
+  maxFeatured: 5
+};
+
+// Check if user can create a new listing
+export const canCreateListing = (user) => {
+  const plan = user.subscription.plan;
+  const limits = plan === 'premium' ? PREMIUM_PLAN_LIMITS : FREE_PLAN_LIMITS;
+  
+  return user.subscription.listingsUsed < limits.maxListings;
+};
+
+// Check if user can feature a listing
 export const canFeatureListing = (user) => {
-  if (user.subscription.plan !== 'diamond') return false;
-  return user.subscription.featuredListings.length < 2;
+  const plan = user.subscription.plan;
+  const limits = plan === 'premium' ? PREMIUM_PLAN_LIMITS : FREE_PLAN_LIMITS;
+  
+  if (plan === 'free') return false;
+  
+  return user.subscription.featuredListings.length < limits.maxFeatured;
 };
