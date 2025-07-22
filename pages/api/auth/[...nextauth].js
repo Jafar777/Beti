@@ -1,9 +1,8 @@
-// pages/api/auth/[...nextauth].js
 import NextAuth from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import User from '@/models/User'
 import dbConnect from '@/lib/dbConnect'
-import bcrypt from 'bcryptjs'
+import { comparePassword } from '@/lib/passwordUtils'
 
 export const authOptions = {
   providers: [
@@ -14,19 +13,45 @@ export const authOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials) {
-        await dbConnect();
-        
-        const user = await User.findOne({ mobile: credentials.mobile });
-        if (!user) return null;
-        
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-        if (!isValid) return null;
-        
-        return { 
-          id: user._id.toString(), // Ensure ID is string
-          name: `${user.firstName} ${user.lastName}`,
-          email: user.mobile,
-          image: user.image || null 
+        try {
+          await dbConnect();
+          
+          const trimmedMobile = credentials.mobile.trim();
+          console.log(`Attempting login for mobile: ${trimmedMobile}`);
+          
+          const user = await User.findOne({ mobile: trimmedMobile })
+            .select('+password +likedProperties');
+          
+          if (!user) {
+            console.log('User not found');
+            return null;
+          }
+          
+          console.log(`User found: ${user._id}`);
+          
+          // Use our utility for password comparison
+          const isValid = await comparePassword(credentials.password, user.password);
+          
+          if (!isValid) {
+            console.log('Password mismatch');
+            return null;
+          }
+          
+          console.log('Login successful');
+          
+          // FIX: Handle undefined likedProperties
+          const likedProperties = user.likedProperties || [];
+          
+          return { 
+            id: user._id.toString(),
+            name: `${user.firstName} ${user.lastName}`,
+            email: user.mobile,
+            image: user.image || null,
+            likedProperties: likedProperties.map(id => id.toString())
+          }
+        } catch (error) {
+          console.error('Authorization error:', error);
+          return null;
         }
       }
     })
@@ -37,6 +62,7 @@ export const authOptions = {
   },
   pages: {
     signIn: '/auth/signin',
+    error: '/auth/signin', // Redirect to signin on error
   },
   callbacks: {
     async jwt({ token, user }) {
@@ -46,7 +72,8 @@ export const authOptions = {
           id: user.id,
           name: user.name,
           email: user.email,
-          image: user.image
+          image: user.image,
+          likedProperties: user.likedProperties
         };
       }
       return token;
@@ -55,6 +82,10 @@ export const authOptions = {
       session.user.id = token.id;
       session.user.firstName = token.user?.name?.split(' ')[0] || '';
       session.user.lastName = token.user?.name?.split(' ')[1] || '';
+      
+      // FIX: Ensure likedProperties is always an array
+      session.user.likedProperties = token.user?.likedProperties || [];
+      
       return session;
     }
   },
@@ -62,4 +93,4 @@ export const authOptions = {
   debug: process.env.NODE_ENV === 'development',
 }
 
-export default NextAuth(authOptions)
+export default NextAuth(authOptions);

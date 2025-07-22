@@ -1,192 +1,262 @@
 'use client';
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
+import PublicPropertyCard from './PublicPropertyCard';
 import { useLanguage } from '@/context/LanguageContext';
-import Link from 'next/link';
+import { useSession, signIn } from "next-auth/react";
 
-const AllListings = () => {
-  const { language, translations } = useLanguage();
-  const t = translations[language] || {};
-  const [activeFilter, setActiveFilter] = useState('all');
+export default function AllListings() {
+  const [properties, setProperties] = useState([]);
+  const [filteredProperties, setFilteredProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filters, setFilters] = useState({
+    minPrice: '',
+    maxPrice: '',
+    bedrooms: '',
+    propertyType: '',
+    verifiedOnly: false
+  });
   
-  // Mock data for all listings
-  const allProperties = [
-    {
-      id: 1,
-      title: "Modern Apartment in Damascus",
-      price: "150,000 USD",
-      location: "Damascus, Syria",
-      type: "apartment",
-      bedrooms: 3,
-      bathrooms: 2,
-      area: "150 m²",
-      featured: true
-    },
-    {
-      id: 2,
-      title: "Luxury Villa in Latakia",
-      price: "350,000 USD",
-      location: "Latakia, Syria",
-      type: "villa",
-      bedrooms: 5,
-      bathrooms: 4,
-      area: "300 m²",
-      featured: true
-    },
-    {
-      id: 3,
-      title: "Downtown Office Space",
-      price: "200,000 USD",
-      location: "Aleppo, Syria",
-      type: "commercial",
-      bedrooms: "-",
-      bathrooms: 2,
-      area: "200 m²",
-      featured: false
-    },
-    {
-      id: 4,
-      title: "Seaside Apartment",
-      price: "180,000 USD",
-      location: "Tartus, Syria",
-      type: "apartment",
-      bedrooms: 2,
-      bathrooms: 2,
-      area: "120 m²",
-      featured: true
-    },
-    {
-      id: 5,
-      title: "Farm Land for Sale",
-      price: "120,000 USD",
-      location: "Homs, Syria",
-      type: "land",
-      bedrooms: "-",
-      bathrooms: "-",
-      area: "500 m²",
-      featured: false
-    },
-    {
-      id: 6,
-      title: "Modern Studio Apartment",
-      price: "90,000 USD",
-      location: "Damascus, Syria",
-      type: "apartment",
-      bedrooms: 1,
-      bathrooms: 1,
-      area: "80 m²",
-      featured: false
-    },
-    {
-      id: 7,
-      title: "Commercial Building",
-      price: "500,000 USD",
-      location: "Aleppo, Syria",
-      type: "commercial",
-      bedrooms: "-",
-      bathrooms: 4,
-      area: "600 m²",
-      featured: false
-    },
-    {
-      id: 8,
-      title: "Family Villa with Garden",
-      price: "280,000 USD",
-      location: "Latakia, Syria",
-      type: "villa",
-      bedrooms: 4,
-      bathrooms: 3,
-      area: "250 m²",
-      featured: true
-    },
-  ];
+  const { language, translations } = useLanguage();
+  const { data: session } = useSession();
+  const t = translations[language] || {};
 
-  // Filter properties based on active filter
-  const filteredProperties = activeFilter === 'all' 
-    ? allProperties 
-    : allProperties.filter(property => property.type === activeFilter);
+  useEffect(() => {
+    const fetchProperties = async () => {
+      try {
+        const res = await fetch('/api/properties');
+        const data = await res.json();
+        setProperties(data);
+        setFilteredProperties(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch properties:', error);
+        setLoading(false);
+      }
+    };
+    
+    fetchProperties();
+  }, []);
+
+  // Apply filters when filters change
+  useEffect(() => {
+    let result = [...properties];
+    
+    if (filters.minPrice) {
+      result = result.filter(p => p.price >= Number(filters.minPrice));
+    }
+    
+    if (filters.maxPrice) {
+      result = result.filter(p => p.price <= Number(filters.maxPrice));
+    }
+    
+    if (filters.bedrooms) {
+      result = result.filter(p => p.bedrooms >= Number(filters.bedrooms));
+    }
+    
+    if (filters.propertyType) {
+      result = result.filter(p => p.propertyType === filters.propertyType);
+    }
+    
+    if (filters.verifiedOnly) {
+      result = result.filter(p => p.isVerified); // Assuming you have an isVerified field
+    }
+    
+    setFilteredProperties(result);
+  }, [filters, properties]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      minPrice: '',
+      maxPrice: '',
+      bedrooms: '',
+      propertyType: '',
+      verifiedOnly: false
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">{t.loading || 'Loading...'}</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="my-12">
-      <h2 className="text-2xl font-bold text-[#375171] mb-6 text-center">
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold text-[#375171] mb-6 text-center">
         {t.allListings || 'All Listings'}
-      </h2>
+      </h1>
       
-      {/* Property Type Filters */}
-      <div className="flex flex-wrap justify-center gap-2 mb-8">
-        {['all', 'apartment', 'villa', 'commercial', 'land'].map(type => (
-          <button
-            key={type}
-            onClick={() => setActiveFilter(type)}
-            className={`px-4 py-2 rounded-lg ${
-              activeFilter === type
-                ? 'bg-[#375171] text-white'
-                : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-            }`}
-          >
-            {type === 'all' ? t.allProperties || 'All Properties' : 
-             type === 'apartment' ? t.apartments || 'Apartments' :
-             type === 'villa' ? t.villas || 'Villas' :
-             type === 'commercial' ? t.commercial || 'Commercial' :
-             t.land || 'Land'}
-          </button>
-        ))}
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProperties.map(property => (
-          <div key={property.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition">
-            <div className="h-48 bg-gray-200 border-b relative">
-              {property.featured && (
-                <div className="absolute top-2 left-2 bg-yellow-500 text-white px-3 py-1 rounded text-sm font-bold">
-                  {t.featured || 'Featured'}
-                </div>
-              )}
-              <div className="w-full h-full flex items-center justify-center">
-                <span className="text-gray-500">{t.propertyImage || 'Property Image'}</span>
+      {session ? (
+        <>
+          {/* Filter Controls with improved styling */}
+          <div className="bg-gray-50 p-6 rounded-lg shadow-md mb-6 border border-gray-200">
+            <h2 className="text-xl font-bold text-[#375171] mb-4">
+              {t.filterListings || 'Filter Listings'}
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div>
+                <label className="block text-gray-700 mb-2 font-medium">
+                  {t.minPrice || 'Min Price'}
+                </label>
+                <input
+                  type="number"
+                  name="minPrice"
+                  value={filters.minPrice}
+                  onChange={handleFilterChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800"
+                  placeholder={t.minPrice || 'Min Price'}
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2 font-medium">
+                  {t.maxPrice || 'Max Price'}
+                </label>
+                <input
+                  type="number"
+                  name="maxPrice"
+                  value={filters.maxPrice}
+                  onChange={handleFilterChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800"
+                  placeholder={t.maxPrice || 'Max Price'}
+                />
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2 font-medium">
+                  {t.bedrooms || 'Bedrooms'}
+                </label>
+                <select
+                  name="bedrooms"
+                  value={filters.bedrooms}
+                  onChange={handleFilterChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800"
+                >
+                  <option value="">{t.any || 'Any'}</option>
+                  <option value="1">1+</option>
+                  <option value="2">2+</option>
+                  <option value="3">3+</option>
+                  <option value="4">4+</option>
+                  <option value="5">5+</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-gray-700 mb-2 font-medium">
+                  {t.propertyType || 'Property Type'}
+                </label>
+                <select
+                  name="propertyType"
+                  value={filters.propertyType}
+                  onChange={handleFilterChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-800"
+                >
+                  <option value="">{t.any || 'Any'}</option>
+                  <option value="apartment">{t.apartment || 'Apartment'}</option>
+                  <option value="villa">{t.villa || 'Villa'}</option>
+                  <option value="office">{t.office || 'Office'}</option>
+                  <option value="land">{t.land || 'Land'}</option>
+                </select>
+              </div>
+              <div className="flex items-end">
+                <label className="flex items-center h-full">
+                  <input
+                    type="checkbox"
+                    name="verifiedOnly"
+                    checked={filters.verifiedOnly}
+                    onChange={(e) => setFilters(prev => ({
+                      ...prev,
+                      verifiedOnly: e.target.checked
+                    }))}
+                    className="mr-2 h-5 w-5 text-[#375171]"
+                  />
+                  <span className="text-gray-700 font-medium">
+                    {t.verifiedOnly || 'Verified Only'}
+                  </span>
+                </label>
               </div>
             </div>
-            
-            <div className="p-4">
-              <h3 className="font-bold text-lg mb-2 text-[#375171]">{property.title}</h3>
-              
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-lg font-bold text-green-600">{property.price}</span>
-                <span className="text-sm text-gray-500">{property.location}</span>
-              </div>
-              
-              <div className="flex justify-between text-sm text-gray-600 mt-4">
-                <div>
-                  <span className="block">{t.bedrooms || 'Bedrooms'}</span>
-                  <span className="font-medium">{property.bedrooms}</span>
-                </div>
-                <div>
-                  <span className="block">{t.bathrooms || 'Bathrooms'}</span>
-                  <span className="font-medium">{property.bathrooms}</span>
-                </div>
-                <div>
-                  <span className="block">{t.area || 'Area'}</span>
-                  <span className="font-medium">{property.area}</span>
-                </div>
-              </div>
-              
-              <Link 
-                href={`/properties/${property.id}`}
-                className="block mt-4 w-full bg-[#375171] text-white text-center py-2 rounded hover:bg-[#2d4360]"
+            <div className="mt-6 flex justify-end">
+              <button 
+                onClick={resetFilters}
+                className="bg-[#375171] hover:bg-[#2d4360] text-white px-6 py-2 rounded-md font-medium"
               >
-                {t.viewDetails || 'View Details'}
-              </Link>
+                {t.resetFilters || 'Reset Filters'}
+              </button>
             </div>
           </div>
-        ))}
-      </div>
-      
-      <div className="text-center mt-8">
-        <button className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium">
-          {t.loadMore || 'Load More'}
-        </button>
-      </div>
+          
+          {/* Property Listings */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProperties.length === 0 ? (
+              <div className="col-span-3 text-center py-10">
+                <p className="text-gray-500 text-xl">{t.noPropertiesFound || 'No properties found'}</p>
+                <button 
+                  onClick={resetFilters}
+                  className="mt-4 bg-[#375171] text-white px-6 py-3 rounded-md hover:bg-[#2d4360] font-medium"
+                >
+                  {t.clearFilters || 'Clear Filters'}
+                </button>
+              </div>
+            ) : (
+              filteredProperties.map(property => (
+                <PublicPropertyCard key={property._id} property={property} />
+              ))
+            )}
+          </div>
+        </>
+      ) : (
+        // Login prompt for unauthenticated users
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-3xl mx-auto text-center">
+          <div className="bg-gray-100 p-6 rounded-lg mb-6">
+            <h2 className="text-2xl font-bold text-[#375171] mb-4">
+              {t.loginRequired || 'Login Required'}
+            </h2>
+            <p className="text-gray-600 mb-6">
+              {t.loginToViewListings || 'Please log in to view all property listings'}
+            </p>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => signIn()}
+                className="bg-[#375171] text-white px-6 py-3 rounded-lg hover:bg-[#2d4360] font-medium"
+              >
+                {t.signIn || 'Sign In'}
+              </button>
+              <button
+                onClick={() => signIn()}
+                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium"
+              >
+                {t.signUp || 'Sign Up'}
+              </button>
+            </div>
+          </div>
+          
+          <div className="mt-8">
+            <h3 className="text-xl font-bold text-[#375171] mb-4">
+              {t.verifiedSample || 'Verified Property Sample'}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {properties
+                .filter(p => p.isVerified) // Show verified properties
+                .slice(0, 2)
+                .map(property => (
+                  <PublicPropertyCard key={property._id} property={property} />
+                ))
+              }
+            </div>
+            <p className="mt-6 text-gray-500 italic">
+              {t.loginToSeeMore || 'Log in to see all available properties'}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
-};
-
-export default AllListings;
+}

@@ -1,10 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import LocationPickerMap from '@/components/LocationPickerMap';
-import { CldUploadWidget } from 'next-cloudinary';
 import { FaTrash } from "react-icons/fa";
 
 export default function EditListingPage() {
@@ -25,12 +24,17 @@ export default function EditListingPage() {
     area: '',
     latitude: 33.510414,
     longitude: 36.278336,
-    images: []
+    images: [],
+    contractType: 'sale',
+    ownershipType: 'green_deed',
+    pinLocation: { lat: 33.510414, lng: 36.278336 }
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const cloudinaryRef = useRef();
+  const widgetRef = useRef();
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -46,7 +50,13 @@ export default function EditListingPage() {
         }
         
         const data = await response.json();
-        setFormData(data);
+        setFormData({
+          ...data,
+          pinLocation: data.pinLocation || {
+            lat: data.latitude,
+            lng: data.longitude
+          }
+        });
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch property:", error);
@@ -69,17 +79,41 @@ export default function EditListingPage() {
     setFormData(prev => ({
       ...prev,
       latitude: position.lat,
-      longitude: position.lng
+      longitude: position.lng,
+      pinLocation: position 
     }));
   };
   
-  const handleImageUpload = (result) => {
-    if (result.event === 'success') {
-      setFormData(prev => ({
-        ...prev,
-        images: [...prev.images, result.info.secure_url]
-      }));
-    }
+  const openCloudinaryWidget = () => {
+    cloudinaryRef.current = window.cloudinary;
+    
+    widgetRef.current = cloudinaryRef.current.createUploadWidget(
+      {
+        cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
+        uploadPreset: process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+        sources: ['local', 'camera'],
+        multiple: true,
+        maxFiles: 10,
+        resourceType: 'image',
+        clientAllowedFormats: ['jpg', 'png', 'jpeg', 'webp'],
+        maxImageFileSize: 5000000, // 5MB
+        cropping: true,
+        croppingAspectRatio: 16/9,
+        showSkipCropButton: false
+      },
+      (error, result) => {
+        if (!error && result && result.event === 'success') {
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, result.info.secure_url]
+          }));
+        } else if (error) {
+          console.error("Cloudinary error:", error);
+        }
+      }
+    );
+    
+    widgetRef.current.open();
   };
   
   const removeImage = (index) => {
@@ -139,7 +173,252 @@ export default function EditListingPage() {
       )}
       
       <form onSubmit={handleSubmit} className="max-w-3xl bg-white rounded-lg shadow-md p-6">
-        {/* ... (same form fields as NewListingPage) ... */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.title || 'Property Title'} *
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.contractType} *
+            </label>
+            <select
+              name="contractType"
+              value={formData.contractType}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            >
+              <option value="rent">{t.rent}</option>
+              <option value="sale">{t.sale}</option>
+              <option value="mortgage">{t.mortgage}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.ownershipType} *
+            </label>
+            <select
+              name="ownershipType"
+              value={formData.ownershipType}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            >
+              <option value="green_deed">{t.green_deed}</option>
+              <option value="white_deed">{t.white_deed}</option>
+              <option value="court_decision">{t.court_decision}</option>
+              <option value="notary">{t.notary}</option>
+              <option value="emiri">{t.emiri}</option>
+              <option value="reform">{t.reform}</option>
+              <option value="charitable_endowment">{t.charitable_endowment}</option>
+              <option value="lineage_endowment">{t.lineage_endowment}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.price || 'Price'} (USD) *
+            </label>
+            <input
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+              min="1"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.location || 'Location'} (City/Area) *
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.propertyType || 'Property Type'} *
+            </label>
+            <select
+              name="propertyType"
+              value={formData.propertyType}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            >
+              <option value="apartment">{t.apartment || 'Apartment'}</option>
+              <option value="villa">{t.villa || 'Villa'}</option>
+              <option value="office">{t.office || 'Office'}</option>
+              <option value="land">{t.land || 'Land'}</option>
+              <option value="full_floor">{t.full_floor || 'Full Floor'}</option>
+              <option value="full_building">{t.full_building || 'Full Building'}</option>
+              <option value="shop">{t.shop || 'Shop'}</option>
+              <option value="house">{t.house || 'House'}</option>
+              <option value="arabian_house">{t.arabian_house || 'Arabian House'}</option>
+              <option value="farm">{t.farm || 'Farm'}</option>
+              <option value="warehouse">{t.warehouse || 'Warehouse'}</option>
+              <option value="seaside_chalet">{t.seaside_chalet || 'Seaside Chalet'}</option>
+              <option value="palace">{t.palace || 'Palace'}</option>
+              <option value="wedding_hall">{t.wedding_hall || 'Wedding Hall'}</option>
+              <option value="showroom">{t.showroom || 'Showroom'}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.bedrooms || 'Bedrooms'} *
+            </label>
+            <input
+              type="number"
+              name="bedrooms"
+              value={formData.bedrooms}
+              onChange={handleChange}
+              min="1"
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.bathrooms || 'Bathrooms'} *
+            </label>
+            <input
+              type="number"
+              name="bathrooms"
+              value={formData.bathrooms}
+              onChange={handleChange}
+              min="1"
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
+          
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.area || 'Area (m²)'} *
+            </label>
+            <input
+              type="text"
+              name="area"
+              value={formData.area}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
+        </div>
+        
+        <div className="mb-6">
+          <label className="block text-gray-700 mb-2">
+            {t.description || 'Description'} *
+          </label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            rows="4"
+            className="w-full px-3 py-2 border rounded-md"
+            required
+          ></textarea>
+        </div>
+        
+        {/* Location Picker */}
+        <div className="mb-6">
+          <label className="block text-gray-700 mb-2">
+            {t.selectLocation || 'Select Exact Location on Map'} *
+            <span className="text-sm text-gray-500 ml-2">
+              ({t.clickToPlace || 'Click on the map to place your property'})
+            </span>
+          </label>
+          <LocationPickerMap 
+            onLocationSelected={handleLocationSelect} 
+            initialPosition={formData.pinLocation}
+          />
+          <div className="mt-2 text-sm text-gray-600">
+            {t.coordinates || 'Coordinates'}: 
+            {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
+          </div>
+          <input 
+            type="hidden" 
+            name="latitude" 
+            value={formData.latitude} 
+          />
+          <input 
+            type="hidden" 
+            name="longitude" 
+            value={formData.longitude} 
+          />
+        </div>
+        
+        {/* Image Upload Section */}
+        <div className="mb-6">
+          <label className="block text-gray-700 mb-2">
+            {t.propertyImages || 'Property Images'} *
+            <span className="text-sm text-gray-500 ml-2">
+              ({t.max10Images || 'Max 10 images'})
+            </span>
+          </label>
+          
+          <button
+            type="button"
+            onClick={openCloudinaryWidget}
+            className="bg-[#375171] text-white py-2 px-4 rounded-md mb-4 hover:bg-[#2d4360]"
+          >
+            {t.uploadImages || 'Upload Images'}
+          </button>
+          
+          {formData.images.length > 0 ? (
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
+              {formData.images.map((url, index) => (
+                <div key={`image-${index}`} className="relative group border rounded-md overflow-hidden">
+                  <img 
+                    src={url} 
+                    alt={`Property ${index + 1}`} 
+                    className="w-full h-40 object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                  >
+                    <FaTrash className="text-sm" />
+                  </button>
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-center py-1 text-xs">
+                    {t.image || 'Image'} {index + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="bg-gray-100 rounded-lg p-8 text-center">
+              <p className="text-gray-500">
+                {t.noImages || 'No images uploaded yet'}
+              </p>
+            </div>
+          )}
+        </div>
         
         <button
           type="submit"
@@ -149,6 +428,9 @@ export default function EditListingPage() {
           {isSubmitting ? (t.updating || 'Updating...') : (t.updateProperty || 'Update Property')}
         </button>
       </form>
+      
+      {/* Cloudinary script */}
+      <script src="https://upload-widget.cloudinary.com/global/all.js" async />
     </div>
   );
 }

@@ -42,7 +42,12 @@ export default async function handler(req, res) {
       area,
       latitude,
       longitude,
-      pinLocation // ADD THIS LINE
+      pinLocation,
+        contractType,
+    ownershipType ,
+      governorate,
+  city,
+  district
 
 
     } = req.body;
@@ -62,6 +67,11 @@ export default async function handler(req, res) {
       longitude,
       pinLocation,
       owner: user._id,
+        contractType,
+    ownershipType,
+      governorate,
+  city,
+  district,
       isFeatured: canFeatureListing(user)
     });
     
@@ -77,6 +87,11 @@ export default async function handler(req, res) {
     
     res.status(201).json(property);
   } catch (error) {
+      // Add specific validation error handling
+  if (error.name === 'ValidationError') {
+    const errors = Object.values(error.errors).map(err => err.message);
+    return res.status(400).json({ error: errors.join(', ') });
+  }
     console.error("Property creation error:", error);
     res.status(500).json({ error: 'Server error: ' + error.message });
   }

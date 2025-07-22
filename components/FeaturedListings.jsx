@@ -1,55 +1,47 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
 import Link from 'next/link';
+import { FaStar } from 'react-icons/fa';
 
 const FeaturedListings = () => {
   const { language, translations } = useLanguage();
   const t = translations[language] || {};
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for featured listings
-  const featuredProperties = [
-    {
-      id: 1,
-      title: "Modern Apartment in Damascus",
-      price: "150,000 USD",
-      location: "Damascus, Syria",
-      bedrooms: 3,
-      bathrooms: 2,
-      area: "150 m²",
-      image: "/property1.jpg"
-    },
-    {
-      id: 2,
-      title: "Luxury Villa in Latakia",
-      price: "350,000 USD",
-      location: "Latakia, Syria",
-      bedrooms: 5,
-      bathrooms: 4,
-      area: "300 m²",
-      image: "/property2.jpg"
-    },
-    {
-      id: 3,
-      title: "Downtown Office Space",
-      price: "200,000 USD",
-      location: "Aleppo, Syria",
-      bedrooms: "-",
-      bathrooms: 2,
-      area: "200 m²",
-      image: "/property3.jpg"
-    },
-    {
-      id: 4,
-      title: "Seaside Apartment",
-      price: "180,000 USD",
-      location: "Tartus, Syria",
-      bedrooms: 2,
-      bathrooms: 2,
-      area: "120 m²",
-      image: "/property4.jpg"
-    },
-  ];
+  useEffect(() => {
+    const fetchFeaturedProperties = async () => {
+      try {
+        setLoading(true);
+        const res = await fetch('/api/properties?featured=true&limit=4');
+        const data = await res.json();
+        setFeaturedProperties(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch featured properties:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProperties();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="my-12 text-center">
+        <p>{t.loading || 'Loading...'}</p>
+      </div>
+    );
+  }
+
+  if (!loading && featuredProperties.length === 0) {
+    return (
+      <div className="my-12 text-center">
+        <p>{t.noFeaturedListings || 'No featured listings available'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="my-12">
@@ -59,17 +51,26 @@ const FeaturedListings = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {featuredProperties.map(property => (
-          <div key={property.id} className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition">
+          <div 
+            key={property._id} 
+            className="bg-white rounded-lg shadow-lg overflow-hidden border-2 border-yellow-600 relative"
+          >
+            {/* Golden Featured Badge */}
+            <div className="absolute top-2 left-2 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white text-xs font-bold px-2 py-1 rounded flex items-center">
+              <FaStar className="mr-1" />
+              {t.featured || 'Featured'}
+            </div>
+            
             <div className="h-48 bg-gray-200 border-b">
-              {property.image ? (
+              {property.images && property.images.length > 0 ? (
                 <img 
-                  src={property.image} 
+                  src={property.images[0]} 
                   alt={property.title} 
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-gray-500">No Image</span>
+                <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                  <span className="text-gray-500">{t.noImage || 'No Image'}</span>
                 </div>
               )}
             </div>
@@ -78,11 +79,11 @@ const FeaturedListings = () => {
               <h3 className="font-bold text-lg mb-2 text-[#375171]">{property.title}</h3>
               
               <div className="flex justify-between items-center mb-2">
-                <span className="text-lg font-bold text-green-600">{property.price}</span>
+                <span className="text-lg font-bold text-yellow-700">${property.price?.toLocaleString()}</span>
                 <span className="text-sm text-gray-500">{property.location}</span>
               </div>
               
-              <div className="flex justify-between text-sm text-gray-600 mt-4">
+              <div className="flex justify-between text-sm text-gray-700 mt-4">
                 <div>
                   <span className="block">{t.bedrooms || 'Bedrooms'}</span>
                   <span className="font-medium">{property.bedrooms}</span>
@@ -93,13 +94,13 @@ const FeaturedListings = () => {
                 </div>
                 <div>
                   <span className="block">{t.area || 'Area'}</span>
-                  <span className="font-medium">{property.area}</span>
+                  <span className="font-medium">{property.area} m²</span>
                 </div>
               </div>
               
               <Link 
-                href={`/properties/${property.id}`}
-                className="block mt-4 w-full bg-[#375171] text-white text-center py-2 rounded hover:bg-[#2d4360]"
+                href={`/properties/${property._id}`}
+                className="block mt-4 w-full bg-gradient-to-r from-yellow-600 to-yellow-700 text-white text-center py-2 rounded hover:from-yellow-700 hover:to-yellow-800 transition-all"
               >
                 {t.viewDetails || 'View Details'}
               </Link>
@@ -107,8 +108,6 @@ const FeaturedListings = () => {
           </div>
         ))}
       </div>
-      
-
     </div>
   );
 };

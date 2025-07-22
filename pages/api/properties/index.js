@@ -2,6 +2,7 @@ import Property from '@/models/Property';
 import dbConnect from '@/lib/dbConnect';
 import { getToken } from 'next-auth/jwt';
 
+
 export default async function handler(req, res) {
   await dbConnect();
   
@@ -18,6 +19,8 @@ export default async function handler(req, res) {
         const serialized = properties.map(p => ({
           ...p,
           _id: p._id.toString(),
+            contractType: p.contractType, // Add this
+  ownershipType: p.ownershipType, // Add this
           owner: p.owner ? {
             ...p.owner,
             _id: p.owner._id.toString()

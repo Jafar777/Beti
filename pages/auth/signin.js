@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn } from 'next-auth/react'; // Import signIn here
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 import Navbar from '@/components/Navbar';
@@ -27,15 +27,16 @@ export default function AuthPage() {
     setError('');
     setLoading(true);
     
+    const trimmedMobile = mobile.trim();
+
     if (isSignUp) {
-      // Signup logic
       if (password !== confirmPassword) {
         setError(t.passwordsDontMatch || "Passwords don't match");
         setLoading(false);
         return;
       }
       
-      if (!/^09\d{8}$/.test(mobile)) {
+      if (!/^09\d{8}$/.test(trimmedMobile)) {
         setError(t.invalidMobile || "Invalid Syrian mobile number format");
         setLoading(false);
         return;
@@ -44,25 +45,21 @@ export default function AuthPage() {
       try {
         const response = await fetch('/api/auth/signup', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
             firstName,
             lastName,
-            mobile,
-            password
+            mobile: trimmedMobile,
+            password: password
           }),
         });
         
-        const data = await response.json();
-        
         if (response.ok) {
-          // Automatically sign in after successful signup
+          // Sign in directly after successful signup
           const result = await signIn('credentials', {
             redirect: false,
-            mobile,
-            password
+            mobile: trimmedMobile,
+            password: password
           });
           
           if (result.error) {
@@ -71,17 +68,19 @@ export default function AuthPage() {
             router.push('/dashboard');
           }
         } else {
+          const data = await response.json();
           setError(data.error || t.signupError || 'Signup failed');
         }
       } catch (err) {
+        console.error('Signup error:', err);
         setError(t.networkError || 'Network error');
       }
     } else {
-      // Signin logic
+      // Sign in directly
       const result = await signIn('credentials', {
         redirect: false,
-        mobile,
-        password
+        mobile: trimmedMobile,
+        password: password
       });
       
       if (result.error) {
@@ -93,6 +92,7 @@ export default function AuthPage() {
     
     setLoading(false);
   };
+
 
   const toggleFormMode = () => {
     setIsSignUp(!isSignUp);

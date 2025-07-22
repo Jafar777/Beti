@@ -16,17 +16,6 @@ export default function ListingsPage() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push('/auth/signin');
-      return;
-    }
-    
-    if (status === "authenticated") {
-      fetchListings();
-    }
-  }, [status, router]);
-
   const fetchListings = async () => {
     try {
       setLoading(true);
@@ -45,13 +34,32 @@ export default function ListingsPage() {
       
       const data = await response.json();
       setListings(data);
-      setLoading(false);
     } catch (error) {
       console.error("Failed to fetch listings:", error);
+    } finally {
       setLoading(false);
     }
   };
-  
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push('/auth/signin');
+      return;
+    }
+    
+    if (status === "authenticated") {
+      fetchListings();
+    }
+  }, [status, router]);
+
+  const handleCardClick = (property) => {
+    router.push(`/properties/${property._id}`);
+  };
+
+  const handleDeleteProperty = (propertyId) => {
+    setListings(prev => prev.filter(p => p._id !== propertyId));
+  };
+
   if (loading || status === "loading") {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -59,10 +67,7 @@ export default function ListingsPage() {
       </div>
     );
   }
-  const handleCardClick = (property) => {
-    // Navigate to property detail page
-    router.push(`/properties/${property._id}`);
-  };
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-6">
@@ -103,6 +108,7 @@ export default function ListingsPage() {
               basePath="/dashboard/listings"
               showEdit={true}
               onCardClick={handleCardClick}
+              onDelete={handleDeleteProperty}
             />
           ))}
         </div>

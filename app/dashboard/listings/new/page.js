@@ -1,10 +1,12 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef,useEffect } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import LocationPickerMap from '@/components/LocationPickerMap';
 import { FaTrash } from "react-icons/fa";
+import { syriaLocations, getGovernorate, getCity } from '@/data/syriaLocations';
+
 
 export default function NewListingPage() {
   const { data: session } = useSession();
@@ -21,12 +23,28 @@ export default function NewListingPage() {
     bedrooms: 1,
     bathrooms: 1,
     area: '',
+      contractType: 'sale',
+  ownershipType: 'green_deed',
     latitude: 33.510414,
     longitude: 36.278336,
-    pinLocation: { lat: 33.510414, lng: 36.278336 }, // Added default
+    pinLocation: { lat: 33.510414, lng: 36.278336 },
+    governorate: '',
+    city: '',
+    district: '',
 
     images: []
   });
+    const [syriaLocations, setSyriaLocations] = useState({ governorates: [] });
+  const [loadingLocations, setLoadingLocations] = useState(true);
+   const availableCities = formData.governorate 
+    ? getGovernorate(formData.governorate)?.cities || []
+    : [];
+    
+  // Get available districts based on selected city
+  const availableDistricts = formData.city 
+    ? getCity(formData.city)?.districts || []
+    : [];
+
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +55,21 @@ export default function NewListingPage() {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
-  
+    useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch('/api/locations');
+        const data = await response.json();
+        setSyriaLocations(data);
+      } catch (error) {
+        console.error('Failed to fetch locations:', error);
+      } finally {
+        setLoadingLocations(false);
+      }
+    };
+    
+    fetchLocations();
+  }, []);
   const handleLocationSelect = (position) => {
     setFormData(prev => ({
       ...prev,
@@ -69,9 +101,15 @@ export default function NewListingPage() {
         bathrooms: Number(formData.bathrooms),
         latitude: Number(formData.latitude),
         longitude: Number(formData.longitude),
-         pinLocation: formData.pinLocation
+         pinLocation: formData.pinLocation,
+         governorate: formData.governorate,
+      city: formData.city,
+      district: formData.district
       };
-
+  if (!formData.governorate || !formData.city || !formData.district) {
+    setError(t.locationRequired || 'Please select governorate, city, and district');
+    return;
+  }
       // Send to API
       // Send to API with credentials
       const response = await fetch('/api/properties/create', {
@@ -134,6 +172,13 @@ export default function NewListingPage() {
     
     widgetRef.current.open();
   };
+   if (loadingLocations) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl">Loading locations...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -162,6 +207,47 @@ export default function NewListingPage() {
               required
             />
           </div>
+
+            <div>
+    <label className="block text-gray-700 mb-2">
+      {t.contractType} *
+    </label>
+    <select
+      name="contractType"
+      value={formData.contractType}
+      onChange={handleChange}
+      className="w-full px-3 py-2 border rounded-md"
+      required
+    >
+      <option value="rent">{t.rent}</option>
+      <option value="sale">{t.sale}</option>
+      <option value="mortgage">{t.mortgage}</option>
+    </select>
+  </div>
+  
+  {/* Ownership Type */}
+  <div>
+    <label className="block text-gray-700 mb-2">
+      {t.ownershipType} *
+    </label>
+    <select
+      name="ownershipType"
+      value={formData.ownershipType}
+      onChange={handleChange}
+      className="w-full px-3 py-2 border rounded-md"
+      required
+    >
+      <option value="green_deed">{t.green_deed}</option>
+      <option value="white_deed">{t.white_deed}</option>
+      <option value="court_decision">{t.court_decision}</option>
+      <option value="notary">{t.notary}</option>
+      <option value="emiri">{t.emiri}</option>
+      <option value="reform">{t.reform}</option>
+      <option value="charitable_endowment">{t.charitable_endowment}</option>
+      <option value="lineage_endowment">{t.lineage_endowment}</option>
+    </select>
+  </div>
+
           
           <div>
             <label className="block text-gray-700 mb-2">
@@ -177,20 +263,10 @@ export default function NewListingPage() {
               min="1"
             />
           </div>
+
+
           
-          <div>
-            <label className="block text-gray-700 mb-2">
-              {t.location || 'Location'} (City/Area) *
-            </label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-          </div>
+  
           
           <div>
             <label className="block text-gray-700 mb-2">
@@ -207,6 +283,17 @@ export default function NewListingPage() {
               <option value="villa">{t.villa || 'Villa'}</option>
               <option value="office">{t.office || 'Office'}</option>
               <option value="land">{t.land || 'Land'}</option>
+              <option value="full_floor">{t.full_floor || 'Full Floor'}</option>
+              <option value="full_building">{t.full_building || 'Full Building'}</option>
+              <option value="shop">{t.shop || 'Shop'}</option>
+              <option value="house">{t.house || 'House'}</option>
+              <option value="arabian_house">{t.arabian_house || 'Arabian House'}</option>
+              <option value="farm">{t.farm || 'Farm'}</option>
+              <option value="warehouse">{t.warehouse || 'Warehouse'}</option>
+              <option value="seaside_chalet">{t.seaside_chalet || 'Seaside Chalet'}</option>
+              <option value="palace">{t.palace || 'Palace'}</option>
+              <option value="wedding_hall">{t.wedding_hall || 'Wedding Hall'}</option>
+              <option value="showroom">{t.showroom || 'Showroom'}</option>
             </select>
           </div>
           
@@ -268,6 +355,99 @@ export default function NewListingPage() {
             required
           ></textarea>
         </div>
+                    <div className="">
+    <h3 className="text-xl font-bold text-[#375171] mb-4">
+      {t.locationDetails || 'Location Details'}
+    </h3>
+    
+    {/* Governorate Selector */}
+    <div className="mb-4">
+      <label className="block text-gray-700 mb-2">
+        {t.governorate} *
+      </label>
+   <select
+    name="governorate"
+    value={formData.governorate}
+    onChange={(e) => setFormData({ 
+      ...formData, 
+      governorate: e.target.value,
+      city: '',
+      district: ''
+    })}
+    className="w-full px-3 py-2 border rounded-md"
+    required
+  >
+    <option value="">{t.selectGovernorate}</option>
+    {syriaLocations.governorates.map(gov => (
+      <option key={gov.id} value={gov.id}>
+        {gov.name[language]}
+      </option>
+    ))}
+  </select>
+    </div>
+    
+    {/* City Selector */}
+    <div className="mb-4">
+      <label className="block text-gray-700 mb-2">
+        {t.city} *
+      </label>
+      <select
+        name="city"
+        value={formData.city}
+        onChange={(e) => setFormData({ 
+          ...formData, 
+          city: e.target.value,
+          district: ''
+        })}
+        className="w-full px-3 py-2 border rounded-md"
+        required
+        disabled={!formData.governorate}
+      >
+        <option value="">{t.selectCity}</option>
+        {availableCities.map(city => (
+          <option key={city.id} value={city.id}>
+            {city.name[language]}
+          </option>
+        ))}
+      </select>
+    </div>
+    
+    {/* District Selector */}
+    <div className="mb-4">
+      <label className="block text-gray-700 mb-2">
+        {t.district} *
+      </label>
+      <select
+        name="district"
+        value={formData.district}
+        onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+        className="w-full px-3 py-2 border rounded-md"
+        required
+        disabled={!formData.city}
+      >
+        <option value="">{t.selectDistrict}</option>
+        {availableDistricts.map(district => (
+          <option key={district.id} value={district.id}>
+            {district.name[language]}
+          </option>
+        ))}
+      </select>
+    </div>
+  </div>
+
+          <div>
+            <label className="block text-gray-700 mb-2">
+              {t.location || 'Exact Address'} *
+            </label>
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-md"
+              required
+            />
+          </div>
         
         {/* Location Picker */}
         <div className="mb-6">
@@ -331,7 +511,7 @@ export default function NewListingPage() {
                     <FaTrash className="text-sm" />
                   </button>
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-60 text-white text-center py-1 text-xs">
-                    {t.image || 'Image'} {index + 1}
+                    {t.image || 'Add Images for the property'} {index + 1}
                   </div>
                 </div>
               ))}

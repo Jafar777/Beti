@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import PublicPropertyCard from '@/components/PublicPropertyCard'; // Use the public card component
 
 export default function LikedPage() {
   const { data: session, status } = useSession();
@@ -19,20 +20,15 @@ export default function LikedPage() {
       router.push('/auth/signin');
     }
     
-    // Fetch liked properties
     const fetchLikedProperties = async () => {
       try {
-        // In real app, fetch from your API
-        // const response = await fetch(`/api/users/${session.user.id}/liked`);
-        // const data = await response.json();
+        const response = await fetch(`/api/users/${session.user.id}/liked-properties`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch liked properties');
+        }
         
-        // Mock data
-        const mockProperties = [
-          { id: 1, title: "Modern Apartment in Damascus", price: "$150,000" },
-          { id: 2, title: "Villa in Latakia", price: "$350,000" },
-        ];
-        
-        setLikedProperties(mockProperties);
+        const data = await response.json();
+        setLikedProperties(data);
         setLoading(false);
       } catch (error) {
         console.error("Failed to fetch liked properties:", error);
@@ -66,7 +62,7 @@ export default function LikedPage() {
           </p>
           <Link 
             href="/properties" 
-            className="bg-[#375171] text-white px-4 py-2 rounded-lg inline-block"
+            className="bg-[#375171] text-white px-4 py-2 rounded-lg inline-block hover:bg-[#2d4360]"
           >
             {t.browseProperties || 'Browse Properties'}
           </Link>
@@ -74,16 +70,7 @@ export default function LikedPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {likedProperties.map((property) => (
-            <div key={property.id} className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
-              <h3 className="text-xl font-bold mb-2">{property.title}</h3>
-              <p className="text-lg font-semibold text-[#375171] mb-4">{property.price}</p>
-              <Link 
-                href={`/properties/${property.id}`}
-                className="text-[#375171] border border-[#375171] px-3 py-1 rounded hover:bg-[#375171] hover:text-white"
-              >
-                {t.viewDetails || 'View Details'}
-              </Link>
-            </div>
+            <PublicPropertyCard key={property._id} property={property} />
           ))}
         </div>
       )}

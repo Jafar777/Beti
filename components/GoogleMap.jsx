@@ -1,7 +1,12 @@
 'use client';
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect ,useMemo } from 'react';
 import { FaChevronCircleRight, FaChevronCircleLeft } from "react-icons/fa";
+import { useSession, signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { IoPinOutline } from "react-icons/io5";
+
+
 import { useLanguage } from '@/context/LanguageContext';
 
 const governorates = [
@@ -130,6 +135,11 @@ const satelliteStyles = [
 ];
 
 export default function GoogleMapComponent({ properties = [] }) {
+
+  const { data: session } = useSession();
+  const router = useRouter();
+
+
   const [mapType, setMapType] = useState('roadmap');
   const [activeGov, setActiveGov] = useState('damascus');
   const [map, setMap] = useState(null);
@@ -147,7 +157,15 @@ export default function GoogleMapComponent({ properties = [] }) {
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   });
-
+const markerIcon = useMemo(() => ({
+  path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+  fillColor: "red",
+  fillOpacity: 1,
+  strokeColor: "#000",
+  strokeWeight: 1,
+  scale: 1.5,
+  anchor: { x: 12, y: 22 }
+}), []);
   const onLoad = useCallback(function callback(map) {
     const bounds = new window.google.maps.LatLngBounds(
       new window.google.maps.LatLng(syriaBounds.south, syriaBounds.west),
@@ -203,6 +221,14 @@ export default function GoogleMapComponent({ properties = [] }) {
       document.removeEventListener("touchstart", handleClickOutside);
     };
   }, []);
+    const handlePinClick = (property) => {
+    if (!session) {
+      const callbackUrl = `/properties/${property._id}`;
+      signIn(undefined, { callbackUrl });
+    } else {
+      setSelectedProperty(property);
+    }
+  };
 
   return isLoaded ? (
     <div className="relative rounded-xl overflow-hidden shadow-lg">
@@ -273,20 +299,16 @@ export default function GoogleMapComponent({ properties = [] }) {
           };
           
           return (
-            <Marker
-              key={property._id}
-              position={position}
-              icon={{
-                path: "M10,0C4.5,0,0,4.5,0,10s10,20,10,20s10-14.5,10-20S15.5,0,10,0z M10,15c-2.8,0-5-2.2-5-5s2.2-5,5-5s5,2.2,5,5S12.8,15,10,15z",
-                fillColor: property.isFeatured ? "gold" : "red",
-                fillOpacity: 1,
-                strokeColor: "#000",
-                strokeWeight: 1,
-                scale: 1.5,
-                anchor: new window.google.maps.Point(10, 20),
-              }}
-              onClick={() => setSelectedProperty(property)}
-            />
+  <Marker
+  key={property._id}
+  position={position}
+  onClick={() => handlePinClick(property)}
+  icon={{
+    url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", // Classic red pin
+    scaledSize: new window.google.maps.Size(40, 40),
+    anchor: new window.google.maps.Point(20, 40),
+  }}
+/>
           );
         })}
         

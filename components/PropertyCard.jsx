@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { FaBed, FaBath, FaRulerCombined } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
-export default function PropertyCard({ property, showEdit = true, basePath = '/dashboard/listings',onCardClick }) {
+export default function PropertyCard({ property, showEdit = true, basePath = '/dashboard/listings', onCardClick ,onDelete}) {
+  const router = useRouter();
+  
   // Determine status text and class
   const statusText = property.status || 'active';
   let statusClass = '';
@@ -20,14 +23,39 @@ export default function PropertyCard({ property, showEdit = true, basePath = '/d
       statusClass = 'bg-blue-100 text-blue-800';
   }
 
+   const handleDelete = async (e, propertyId) => {
+    e.stopPropagation();
+    
+    if (confirm('Are you sure you want to delete this property?')) {
+      try {
+        const response = await fetch(`/api/properties/${propertyId}`, {
+          method: 'DELETE',
+        });
+        
+        if (response.ok) {
+          // Call the onDelete callback from parent
+          if (onDelete) {
+            onDelete(propertyId);
+          }
+        } else {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to delete property');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert(error.message || 'Failed to delete property');
+      }
+    }
+  };
+
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer "
-     onClick={() => onCardClick && onCardClick(property)}
+    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
+      onClick={() => onCardClick && onCardClick(property)}
     >
       {/* Property Image */}
       {property.images && property.images.length > 0 ? (
-        <div onClick={() => onCardClick && onCardClick(property)}
-         className="relative h-48 w-full">
+        <div className="relative h-48 w-full">
           <Image 
             src={property.images[0]} 
             alt={property.title} 
@@ -51,7 +79,7 @@ export default function PropertyCard({ property, showEdit = true, basePath = '/d
             {statusText}
           </span>
         </div>
-        <h3 className="text-xl font-bold mb-1 truncate"  onClick={() => onCardClick && onCardClick(property)}>{property.title}</h3>
+        <h3 className="text-xl font-bold mb-1 truncate">{property.title}</h3>
         <p className="text-lg font-semibold text-[#375171] mb-3">${property.price.toLocaleString()}</p>
         
         {/* Property Features */}
@@ -82,14 +110,14 @@ export default function PropertyCard({ property, showEdit = true, basePath = '/d
             <Link 
               href={`${basePath}/${property._id}`}
               className="text-[#375171] border border-[#375171] px-3 py-1 rounded hover:bg-[#375171] hover:text-white transition-colors"
-             onClick={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
             >
               Edit
             </Link>
-            <button className="text-gray-500 hover:text-red-500"  onClick={(e) => {
-                e.stopPropagation();
-                // Handle delete
-              }}>
+            <button 
+              className="text-gray-500 hover:text-red-500"  
+              onClick={(e) => handleDelete(e, property._id)}
+            >
               Delete
             </button>
           </div>

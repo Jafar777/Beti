@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-// Define the schema first
 const userSchema = new mongoose.Schema({
   firstName: { 
     type: String, 
@@ -22,20 +21,6 @@ const userSchema = new mongoose.Schema({
   subscription: {
     plan: { 
       type: String, 
-      default: 'free' 
-    },
-    listingsUsed: { 
-      type: Number, 
-      default: 0 
-    }
-  },
-  image: { 
-    type: String, 
-    default: '' 
-  },
-    subscription: {
-    plan: { 
-      type: String, 
       enum: ['free', 'premium'], 
       default: 'free' 
     },
@@ -45,13 +30,23 @@ const userSchema = new mongoose.Schema({
     },
     featuredListings: [{
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Property'
+      ref: 'Property',
+      default: [] // Add default here
     }]
   },
-  image: { type: String, default: '' },
-}, { timestamps: true });
+  likedProperties: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Property',
+    default: [] // Ensure default empty array
+  }],
+  image: { 
+    type: String, 
+    default: '' 
+  }
+}, { 
+  timestamps: true,
+  // Add this to ensure defaults are applied to existing documents
+  minimize: false 
+});
 
-// Create the model
-const User = mongoose.models.User || mongoose.model('User', userSchema);
-
-export default User;
+export default mongoose.models.User || mongoose.model('User', userSchema);
