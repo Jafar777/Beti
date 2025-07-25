@@ -6,6 +6,7 @@ import { getToken } from 'next-auth/jwt';
 import { canCreateListing, canFeatureListing } from '@/utils/subscription';
 
 export default async function handler(req, res) {
+  
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -18,6 +19,8 @@ export default async function handler(req, res) {
 
   try {
     await dbConnect();
+      console.log("🟢 [API] req.body:", req.body);
+
     
     // Get user using token.sub (user ID)
     const user = await User.findById(token.sub);
@@ -29,7 +32,7 @@ export default async function handler(req, res) {
         error: 'Listing limit reached. Upgrade your plan.' 
       });
     }
-    
+
     const { 
       title, 
       description, 
@@ -51,7 +54,7 @@ export default async function handler(req, res) {
 
 
     } = req.body;
-    
+
     // Create property
     const property = new Property({
       title,
@@ -72,6 +75,7 @@ export default async function handler(req, res) {
       governorate,
   city,
   district,
+    status: 'active', // Set status to active
       isFeatured: canFeatureListing(user)
     });
     

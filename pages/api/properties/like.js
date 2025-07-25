@@ -2,6 +2,7 @@ import { getToken } from 'next-auth/jwt';
 import dbConnect from '@/lib/dbConnect';
 import User from '@/models/User';
 import mongoose from 'mongoose';
+import Property from '@/models/Property';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -18,16 +19,23 @@ export default async function handler(req, res) {
   const { propertyId } = req.body;
   
   try {
-    const user = await User.findById(token.sub);
+    // Find user and property in parallel
+    const [user, property] = await Promise.all([
+      User.findById(token.sub),
+      Property.findById(propertyId)
+    ]);
+    
     if (!user) return res.status(404).json({ error: 'User not found' });
+    if (!property) return res.status(404).json({ error: 'Property not found' });
     
-    // Ensure likedProperties exists
-    user.likedProperties = user.likedProperties || [];
-    
+    // Convert to ObjectId for comparison
     const propertyObjectId = new mongoose.Types.ObjectId(propertyId);
-    const isLiked = user.likedProperties.some(id => id.equals(propertyObjectId));
     
-    if (isLiked) {
+    // Check if already liked
+    const wasLiked = user.likedProperties.some(id => id.equals(propertyObjectId));
+    
+    // Update user's liked properties
+    if (wasLiked) {
       user.likedProperties = user.likedProperties.filter(
         id => !id.equals(propertyObjectId)
       );
@@ -35,14 +43,17 @@ export default async function handler(req, res) {
       user.likedProperties.push(propertyObjectId);
     }
     
-    await user.save();
+    // Update property like count
+    property.likes = wasLiked ? property.likes - 1 : property.likes + 1;
     
-    // Convert to strings for client
-    const likedPropertiesStrings = user.likedProperties.map(id => id.toString());
+    // Save both in parallel
+    await Promise.all([user.save(), property.save()]);
     
+    // Return updated state
     return res.status(200).json({ 
-      likedProperties: likedPropertiesStrings,
-      isLiked: !isLiked 
+      likedProperties: user.likedProperties.map(id => id.toString()),
+      isLiked: !wasLiked,
+      updatedLikes: property.likes
     });
   } catch (error) {
     console.error('Like error:', error);

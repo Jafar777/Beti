@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import LocationPickerMap from '@/components/LocationPickerMap';
 import { FaTrash } from "react-icons/fa";
-import { syriaLocations, getGovernorate, getCity } from '@/data/syriaLocations';
+import { syriaLocations as staticLocations, getGovernorate, getCity } from '@/data/syriaLocations';
 
 
 export default function NewListingPage() {
@@ -34,7 +34,7 @@ export default function NewListingPage() {
 
     images: []
   });
-    const [syriaLocations, setSyriaLocations] = useState({ governorates: [] });
+   const [locationsData, setLocationsData] = useState({ governorates: [] });
   const [loadingLocations, setLoadingLocations] = useState(true);
    const availableCities = formData.governorate 
     ? getGovernorate(formData.governorate)?.cities || []
@@ -60,7 +60,7 @@ export default function NewListingPage() {
       try {
         const response = await fetch('/api/locations');
         const data = await response.json();
-        setSyriaLocations(data);
+        setLocationsData(data);
       } catch (error) {
         console.error('Failed to fetch locations:', error);
       } finally {
@@ -92,6 +92,7 @@ export default function NewListingPage() {
     setIsSubmitting(true);
     setError('');
     
+
     try {
       // Create the property data object
       const propertyData = {
@@ -110,7 +111,7 @@ export default function NewListingPage() {
     setError(t.locationRequired || 'Please select governorate, city, and district');
     return;
   }
-      // Send to API
+        console.log("🔶 propertyData going out:", propertyData);  // Send to API
       // Send to API with credentials
       const response = await fetch('/api/properties/create', {
         method: 'POST',
@@ -378,7 +379,7 @@ export default function NewListingPage() {
     required
   >
     <option value="">{t.selectGovernorate}</option>
-    {syriaLocations.governorates.map(gov => (
+    {locationsData.governorates.map(gov => (
       <option key={gov.id} value={gov.id}>
         {gov.name[language]}
       </option>
@@ -433,21 +434,23 @@ export default function NewListingPage() {
         ))}
       </select>
     </div>
+    {/* ADD THIS SECTION - Location Field */}
+<div className="mb-4">
+  <label className="block text-gray-700 mb-2">
+    {t.location || 'Exact Address'} *
+  </label>
+  <input
+    type="text"
+    name="location"
+    value={formData.location}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border rounded-md"
+    required
+  />
+</div>
   </div>
 
-          <div>
-            <label className="block text-gray-700 mb-2">
-              {t.location || 'Exact Address'} *
-            </label>
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border rounded-md"
-              required
-            />
-          </div>
+ 
         
         {/* Location Picker */}
         <div className="mb-6">

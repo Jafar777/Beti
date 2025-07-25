@@ -1,23 +1,32 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaEnvelope } from 'react-icons/fa';
-import { FaRegHeart, FaHeart } from 'react-icons/fa';
+import {FaBed,FaBath,FaRulerCombined,FaMapMarkerAlt,FaEnvelope,FaRegHeart, FaHeart, FaRegShareSquare} from 'react-icons/fa';
 import SinglePropertyMap from '@/components/SinglePropertyMap';
 import { useSession, signIn } from "next-auth/react";
 import { useLanguage } from '@/context/LanguageContext';
 import { useRouter } from 'next/navigation';
-import { FaRegShareSquare } from 'react-icons/fa';
+import { FaEye } from 'react-icons/fa';
 
 
-export default function PropertyDetails({ property }) {
+export default function PropertyDetails({ property, isLikedByCurrentUser }) {
   const [activeImage, setActiveImage] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
   const [isLiking, setIsLiking] = useState(false);
-  const { data: session, update: updateSession } = useSession();
+  const { data: session } = useSession();
   const { language, translations } = useLanguage();
   const router = useRouter();
   const t = translations[language] || {};
+
+  // Initialize both states from server data
+  const [isLiked, setIsLiked] = useState(isLikedByCurrentUser);
+  const [likesCount, setLikesCount] = useState(property.likes || 0);
+
+  // Sync likesCount with isLiked state on refresh
+  useEffect(() => {
+    if (isLikedByCurrentUser) {
+      setLikesCount(prev => isLikedByCurrentUser ? prev : prev + 1);
+    }
+  }, [isLikedByCurrentUser]);
 
   const images = property.images || [];
   const owner = property.owner || {};
@@ -47,15 +56,25 @@ export default function PropertyDetails({ property }) {
     }
   }, [property]);
 
-
-  // Check if property is already liked
-  useEffect(() => {
-    if (session && property && session.user?.likedProperties) {
-      setIsLiked(session.user.likedProperties.includes(property._id));
+    useEffect(() => {
+    // Only track views for non-owners and non-logged-in users
+    if (!session || (session && session.user.id !== property.owner?._id?.toString())) {
+      const trackView = async () => {
+        try {
+          await fetch('/api/properties/view', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ propertyId: property._id })
+          });
+        } catch (error) {
+          console.error('View tracking failed:', error);
+        }
+      };
+      
+      trackView();
     }
-  }, [session, property]);
-
-  // Check if current user is the owner - ADDED BACK THIS LINE
+  }, [property._id, session, property.owner?._id]);
+  // Check if current user is the owner
   const isOwner = session?.user?.id === (owner?._id || owner?.id)?.toString();
 
   const handleMessageOwner = () => {
@@ -72,8 +91,16 @@ export default function PropertyDetails({ property }) {
       signIn();
       return;
     }
+    if (isLiking) return;
 
     setIsLiking(true);
+    const originalIsLiked = isLiked;
+    const originalLikesCount = likesCount;
+
+    // Optimistic UI update
+    setIsLiked(!isLiked);
+    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
+
     try {
       const response = await fetch('/api/properties/like', {
         method: 'POST',
@@ -87,24 +114,22 @@ export default function PropertyDetails({ property }) {
       }
 
       const data = await response.json();
+      
+      // Update state from server response
       setIsLiked(data.isLiked);
-
-      // CORRECTED: Proper session update
-      await updateSession({
-        user: {
-          ...session.user,
-          likedProperties: data.likedProperties
-        }
-      });
+      setLikesCount(data.updatedLikes);
 
     } catch (error) {
+      // Revert on error
+      setIsLiked(originalIsLiked);
+      setLikesCount(originalLikesCount);
       console.error('Like error:', error);
       alert(error.message || 'Failed to like property');
     } finally {
       setIsLiking(false);
     }
   };
-
+  
   const handleShare = () => {
     const url = `${window.location.origin}/properties/${property._id}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -116,7 +141,6 @@ export default function PropertyDetails({ property }) {
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-
       {/* Image Gallery */}
       <div className="relative">
         {images.length > 0 ? (
@@ -155,34 +179,42 @@ export default function PropertyDetails({ property }) {
           </div>
         )}
       </div>
-      {/* Like Button */}
-      {/* Action Buttons (below images, above info) */}
-      <div className="flex justify-center gap-4 py-4 border-b border-gray-200">
-        <button
-          onClick={handleLike}
-          disabled={isLiking}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${isLiked
-            ? 'bg-red-100 text-red-600'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          aria-label={isLiked ? t.unlikeProperty || 'Unlike property' : t.likeProperty || 'Like property'}
-        >
-          {isLiked ? (
-            <FaHeart className="text-xl" />
-          ) : (
-            <FaRegHeart className="text-xl" />
-          )}
-          <span>{isLiked ? t.liked || 'Liked' : t.like || 'Like'}</span>
-        </button>
 
-        <button
-          onClick={handleShare}
-          className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
-        >
-          <FaRegShareSquare className="text-xl" />
-          <span>{t.share || 'Share'}</span>
-        </button>
+      {/* Action Buttons */}
+      <div className="flex flex-row justify-center items-center gap-6 py-4 border-b border-gray-200">
+        <div className="flex flex-col items-center">
+          <button
+            onClick={handleLike}
+            disabled={isLiking}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+              isLiked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            <div className="text-sm font-medium mt-1 text-gray-600">{likesCount}</div>
+            {isLiked ? <FaHeart className="text-xl text-red-500" /> : <FaRegHeart className="text-xl" />}
+            <span>{isLiked ? t.liked || 'Liked' : t.like || 'Like'}</span>
+          </button>
+        </div>
+        <div className="flex flex-col items-center">
+          <button
+            onClick={handleShare}
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
+          >
+            <FaRegShareSquare className="text-xl" />
+            <span>{t.share || 'Share'}</span>
+          </button>
+        </div>
+                <div className="flex flex-col items-center">
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full">
+            <FaEye className="text-xl" />
+            <span className="text-sm font-medium">{property.views || 0}</span>
+          </div>
+
+        </div>
+
       </div>
+
+      {/* Rest of the component remains the same */}
 
       {/* Property Details */}
       <div className="p-6 ">
@@ -190,23 +222,18 @@ export default function PropertyDetails({ property }) {
           <h1 className="text-3xl font-bold text-[#375171] mb-2">
             {property.title}
           </h1>
-
         </div>
 
         <div className="flex items-center mb-4">
           <span className="text-2xl font-bold text-[#375171] mr-4">
             {t.price}
-
           </span>
           <span className='text-2xl font-bold text-[#375171] mr-4'> ${property.price?.toLocaleString()}</span>
         </div>
 
-
         <div className='flex items-center mb-4'>
           <span className=" text-2xl font-bold text-[#375171] mr-4">
             {t.propertyType}
-
-
           </span>
           <span className=" text-2xl font-bold text-[#375171] mr-4">
             {
@@ -225,12 +252,10 @@ export default function PropertyDetails({ property }) {
                                       property.propertyType === 'showroom' ? t.showroom || 'Showroom' :
                                         property.propertyType === 'wedding_hall' ? t.wedding_hall || 'Wedding Hall' :
                                           t.land || 'Land'
-
             }
           </span>
-
-
         </div>
+
         {/* Contract Type */}
         <div className='flex items-center mb-4'>
           <span className="text-2xl font-bold text-[#375171] mr-4">
@@ -245,8 +270,6 @@ export default function PropertyDetails({ property }) {
           </span>
         </div>
 
-
-
         <div className="flex items-center mb-4">
           <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bedroom}</span>
           <span><FaBed className="text-2xl font-bold text-[#375171] mr-4" /></span>
@@ -254,49 +277,47 @@ export default function PropertyDetails({ property }) {
             {property.bedrooms} {property.bedrooms === 1 ? t.bedroom || 'Bedroom' : t.bedrooms || 'Bedrooms'}
           </span>
         </div>
+
         <div className='flex items-center mb-4'>
           <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bathroom}</span>
           <span>  <FaBath className="text-2xl font-bold text-[#375171] mr-4" /></span>
           <span className="text-2xl font-bold text-[#375171] mr-4">
-
             {property.bathrooms} {property.bathrooms === 1 ? t.bathroom || 'Bathroom' : t.bathrooms || 'Bathrooms'}
           </span>
         </div>
+
         <div className='flex items-center mb-4'>
           <span className='text-2xl font-bold text-[#375171] mr-4'>{t.area}</span>
           <span><FaRulerCombined className="text-2xl font-bold text-[#375171] mr-4" /></span>
           <span className="text-2xl font-bold text-[#375171] mr-4">
-
             {property.area} {t.meter}
           </span>
-
         </div>
-   <div className="flex items-center mb-4">
-  <span className="text-2xl font-bold text-[#375171] mr-4">
-    {t.location}
-  </span>
-  <div>
-    <div className="text-2xl font-bold text-[#375171]">
-      {locationNames.governorate} {/* Fixed: access property directly */}
-    </div>
-    <div className="text-xl text-[#375171]">
-      {locationNames.city} - {/* Fixed: access property directly */}
-      {locationNames.district} {/* Fixed: access property directly */}
-    </div>
-  </div>
-</div>
 
         <div className="flex items-center mb-4">
           <span className="text-2xl font-bold text-[#375171] mr-4">
+            {t.location}
+          </span>
+          <div>
+            <div className="text-2xl font-bold text-[#375171]">
+              {locationNames.governorate}
+            </div>
+            <div className="text-xl text-[#375171]">
+              {locationNames.city} - {locationNames.district}
+            </div>
+          </div>
+        </div>
 
+        <div className="flex items-center mb-4">
+          <span className="text-2xl font-bold text-[#375171] mr-4">
             {t.location || 'Location'}
           </span>
           <span> <FaMapMarkerAlt className="text-2xl font-bold text-[#375171] mr-4" /></span>
-
           <span className="text-2xl font-bold text-[#375171] mr-4">
             {property.location}
           </span>
         </div>
+
         <div className="flex items-center mb-4">
           <span className="text-2xl font-bold text-[#375171] mr-4">{t.ownershipType || 'Ownership Type'}</span>
           <span className="text-2xl font-bold text-[#375171] mr-4">
@@ -310,6 +331,7 @@ export default function PropertyDetails({ property }) {
                           t.lineage_endowment || 'Lineage Endowment'}
           </span>
         </div>
+
         <div className="flex items-center mb-4">
           <span className="text-2xl font-bold text-[#375171] mr-4">
             {t.description || 'Description'}
@@ -318,7 +340,6 @@ export default function PropertyDetails({ property }) {
             {property.description}
           </span>
         </div>
-
 
         <div className="h-96 rounded-lg overflow-hidden relative">
           <SinglePropertyMap
@@ -334,7 +355,6 @@ export default function PropertyDetails({ property }) {
         </h2>
 
         {isOwner ? (
-          // Show full info to owner
           <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
             {owner.image ? (
               <Image
@@ -359,7 +379,6 @@ export default function PropertyDetails({ property }) {
             </div>
           </div>
         ) : (
-          // For non-owners, show contact option without sensitive info
           <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
             <p className="text-gray-700 mb-4">
               {t.interestedInProperty || 'Interested in this property?'}
@@ -375,6 +394,5 @@ export default function PropertyDetails({ property }) {
         )}
       </div>
     </div>
-
   );
 }

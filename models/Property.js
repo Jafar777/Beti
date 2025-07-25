@@ -43,6 +43,11 @@ const propertySchema = new mongoose.Schema({
     ],
     required: true
   },
+  likes: { type: Number, default: 0 },
+   views: { 
+    type: Number, 
+    default: 0 
+  },
     governorate: { type: String, required: true },
   city: { type: String, required: true },
   district: { type: String, required: true },

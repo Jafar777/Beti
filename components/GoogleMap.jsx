@@ -328,7 +328,7 @@ const markerIcon = useMemo(() => ({
                 href={`/properties/${selectedProperty._id}`}
                 className="text-blue-600 hover:underline"
               >
-                View Details
+                {t.viewDetails}
               </a>
             </div>
           </InfoWindow>

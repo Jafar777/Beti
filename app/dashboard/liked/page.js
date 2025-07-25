@@ -22,7 +22,8 @@ export default function LikedPage() {
     
     const fetchLikedProperties = async () => {
       try {
-        const response = await fetch(`/api/users/${session.user.id}/liked-properties`);
+      const response = await fetch(`/api/users/${session.user.id}/liked-properties?includeLikes=true`);
+
         if (!response.ok) {
           throw new Error('Failed to fetch liked properties');
         }

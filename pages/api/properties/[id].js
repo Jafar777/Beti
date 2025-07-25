@@ -29,6 +29,8 @@ export default async function handler(req, res) {
         _id: property._id.toString(),
           contractType: property.contractType, // Add this
   ownershipType: property.ownershipType, // Add this
+    isFeatured: property.isFeatured, // Add this
+
         owner: property.owner ? {
           ...property.owner,
           _id: property.owner._id.toString()

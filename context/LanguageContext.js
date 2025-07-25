@@ -158,6 +158,7 @@ featuredSample: "Featured Property Sample",
   selectCity: "Select City",
   selectDistrict: "Select District",
   locationDetails: "Location Details",
+  viewDetails : 'View Property',
 
 
       
@@ -332,7 +333,8 @@ featuredSample: "عقار مميز كمثال",
   noImages : 'لم يتم اضافة صور للعقار',
   coordinates : 'احداثيات العقار',
   selectLocation : 'قم باختيار موقع العقار الحغرافي',
-  clickToPlace : 'اضغط على الخريطة لاختيار موقع العقار'
+  clickToPlace : 'اضغط على الخريطة لاختيار موقع العقار',
+  viewDetails : 'عرض تفاصيل العقار'
     }
   };
 
