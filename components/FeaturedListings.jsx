@@ -9,23 +9,30 @@ const FeaturedListings = () => {
   const t = translations[language] || {};
   const [featuredProperties, setFeaturedProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [properties, setProperties] = useState([]);
 
   useEffect(() => {
-    const fetchFeaturedProperties = async () => {
+    const fetchProperties = async () => {
       try {
         setLoading(true);
-        const res = await fetch('/api/properties?featured=true&limit=4');
+        const res = await fetch('/api/properties');
         const data = await res.json();
-        setFeaturedProperties(data);
+        setProperties(data);
         setLoading(false);
       } catch (error) {
-        console.error('Failed to fetch featured properties:', error);
+        console.error('Failed to fetch properties:', error);
         setLoading(false);
       }
     };
-
-    fetchFeaturedProperties();
+    
+    fetchProperties();
   }, []);
+
+  useEffect(() => {
+    // Filter properties to only show featured ones
+    const featured = properties.filter(property => property.isFeatured);
+    setFeaturedProperties(featured.slice(0, 4)); // Only show max 4 featured properties
+  }, [properties]);
 
   if (loading) {
     return (
@@ -62,7 +69,7 @@ const FeaturedListings = () => {
             </div>
             
             <div className="h-48 bg-gray-200 border-b">
-              {property.images && property.images.length > 0 ? (
+              {property.images?.length > 0 ? (
                 <img 
                   src={property.images[0]} 
                   alt={property.title} 

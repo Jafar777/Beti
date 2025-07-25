@@ -65,7 +65,10 @@ export default async function handler(req, res) {
           pinLocation: p.pinLocation || {
             lat: p.latitude,
             lng: p.longitude
-          }
+          },
+        isFeatured: p.isFeatured // Ensure this is included
+
+
         }));
 
         return res.status(200).json(serialized);
