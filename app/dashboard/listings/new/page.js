@@ -31,8 +31,18 @@ export default function NewListingPage() {
     governorate: '',
     city: '',
     district: '',
+    images: [],
+      age: '',
+  airConditioning: 'none',
+  privateParking: false,
+  entrances: 1,
+  electricity: 'only_government_electricity',
+  water: 'non_drinkable',
+  violations: false,
+  rooftopOwnership: 'shared',
+  video: '',
 
-    images: []
+    
   });
    const [locationsData, setLocationsData] = useState({ governorates: [] });
   const [loadingLocations, setLoadingLocations] = useState(true);
@@ -95,20 +105,33 @@ export default function NewListingPage() {
 
     try {
       // Create the property data object
-      const propertyData = {
-        ...formData,
-        price: Number(formData.price),
-        bedrooms: Number(formData.bedrooms),
-        bathrooms: Number(formData.bathrooms),
-        latitude: Number(formData.latitude),
-        longitude: Number(formData.longitude),
-         pinLocation: formData.pinLocation,
-         governorate: formData.governorate,
+     const propertyData = {
+      ...formData,
+      price: Number(formData.price),
+      bedrooms: Number(formData.bedrooms),
+      bathrooms: Number(formData.bathrooms),
+      latitude: Number(formData.latitude),
+      longitude: Number(formData.longitude),
+      entrances: Number(formData.entrances),
+      pinLocation: formData.pinLocation,
+      governorate: formData.governorate,
       city: formData.city,
-      district: formData.district
-      };
+      district: formData.district,
+      
+ 
+      rooftopOwnership: String(formData.rooftopOwnership) ,
+      
+      // Convert these directly to booleans
+      privateParking: Boolean(formData.privateParking),
+      violations: Boolean(formData.violations)
+    };
+
   if (!formData.governorate || !formData.city || !formData.district) {
     setError(t.locationRequired || 'Please select governorate, city, and district');
+
+
+    // Add this function to handle video uploads
+
     return;
   }
         console.log("🔶 propertyData going out:", propertyData);  // Send to API
@@ -180,6 +203,34 @@ export default function NewListingPage() {
       </div>
     );
   }
+  const handleVideoUpload = async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  
+  setIsSubmitting(true);
+  
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
+    
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`,
+      {
+        method: 'POST',
+        body: formData,
+      }
+    );
+    
+    const data = await response.json();
+    setFormData(prev => ({ ...prev, video: data.secure_url }));
+  } catch (error) {
+    console.error('Video upload error:', error);
+    setError(t.videoUploadError || 'Failed to upload video');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="p-8">
@@ -342,6 +393,169 @@ export default function NewListingPage() {
             />
           </div>
         </div>
+
+
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+  {/* Property Age */}
+  <div>
+    <label className="block text-gray-700 mb-2">
+      {t.propertyAge || 'Property Age'} *
+    </label>
+    <input
+      type="text"
+      name="age"
+      value={formData.age}
+      onChange={handleChange}
+      className="w-full px-3 py-2 border rounded-md"
+      required
+    />
+  </div>
+  
+  {/* Entrances */}
+  <div>
+    <label className="block text-gray-700 mb-2">
+      {t.entrances || 'Number of Entrances'} *
+    </label>
+    <input
+      type="number"
+      name="entrances"
+      value={formData.entrances}
+      onChange={handleChange}
+      min="1"
+      className="w-full px-3 py-2 border rounded-md"
+      required
+    />
+  </div>
+</div>
+
+{/* Air Conditioning */}
+<div className="mb-4">
+  <label className="block text-gray-700 mb-2">
+    {t.airConditioning || 'Air Conditioning'} *
+  </label>
+  <select
+    name="airConditioning"
+    value={formData.airConditioning}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border rounded-md"
+    required
+  >
+    <option value="none">{t.none || 'None'}</option>
+    <option value="normal_split">{t.normalSplit || 'Normal Split'}</option>
+    <option value="inverter_split">{t.inverterSplit || 'Inverter Split'}</option>
+    <option value="central">{t.central || 'Central'}</option>
+    <option value="concealed">{t.concealed || 'Concealed'}</option>
+    <option value="window_ac">{t.windowAC || 'Window AC'}</option>
+    <option value="desert_ac">{t.desertAC || 'Desert AC'}</option>
+  </select>
+</div>
+
+{/* Electricity */}
+<div className="mb-4">
+  <label className="block text-gray-700 mb-2">
+    {t.electricity || 'Electricity'} *
+  </label>
+  <select
+    name="electricity"
+    value={formData.electricity}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border rounded-md"
+    required
+  >
+    <option value="no_electricity">{t.noElectricity || 'No Electricity'}</option>
+    <option value="solar_panels">{t.solarPanels || 'Solar Panels'}</option>
+    <option value="amber_subscription">{t.amberSubscription || 'Amber Subscription'}</option>
+    <option value="only_government_electricity">
+      {t.govElectricity || 'Government Electricity'}
+    </option>
+  </select>
+</div>
+
+{/* Water */}
+<div className="mb-4">
+  <label className="block text-gray-700 mb-2">
+    {t.water || 'Water'} *
+  </label>
+  <select
+    name="water"
+    value={formData.water}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border rounded-md"
+    required
+  >
+    <option value="no_water">{t.noWater || 'No Water'}</option>
+    <option value="non_drinkable">{t.nonDrinkable || 'Non-Drinkable'}</option>
+    <option value="drinkable">{t.drinkable || 'Drinkable'}</option>
+  </select>
+</div>
+
+{/* Rooftop Ownership */}
+<div className="mb-4">
+  <label className="block text-gray-700 mb-2">
+    {t.rooftopOwnership || 'Rooftop Ownership'} *
+  </label>
+  <select
+    name="rooftopOwnership"
+    value={formData.rooftopOwnership}
+    onChange={handleChange}
+    className="w-full px-3 py-2 border rounded-md"
+    required
+  >
+    <option value="shared">{t.shared || 'Shared'}</option>
+    <option value="private">{t.private || 'Private'}</option>
+  </select>
+</div>
+
+{/* Checkboxes Section */}
+<div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  {/* Private Parking */}
+  <div className="flex items-center">
+    <input
+      type="checkbox"
+      name="privateParking"
+      checked={formData.privateParking}
+      onChange={(e) => setFormData(prev => ({ ...prev, privateParking: e.target.checked }))}
+      className="mr-2"
+    />
+    <label>{t.privateParking || 'Private Parking'}</label>
+  </div>
+  
+  {/* Violations */}
+  <div className="flex items-center">
+    <input
+      type="checkbox"
+      name="violations"
+      checked={formData.violations}
+      onChange={(e) => setFormData(prev => ({ ...prev, violations: e.target.checked }))}
+      className="mr-2"
+    />
+    <label>{t.violations || 'Violations Exist'}</label>
+  </div>
+</div>
+
+{/* Video Upload - Only for golden/diamond */}
+{(session?.user?.subscription?.plan === 'golden' || session?.user?.subscription?.plan === 'diamond') && (
+  <div className="mb-6">
+    <label className="block text-gray-700 mb-2">
+      {t.video || 'Property Video'}
+    </label>
+    <input
+      type="file"
+      accept="video/*"
+      onChange={handleVideoUpload}
+      className="w-full px-3 py-2 border rounded-md"
+    />
+    {formData.video && (
+      <div className="mt-2">
+        <video 
+          src={formData.video} 
+          controls 
+          className="max-w-full max-h-64"
+        />
+      </div>
+    )}
+  </div>
+)}
         
         <div className="mb-6">
           <label className="block text-gray-700 mb-2">

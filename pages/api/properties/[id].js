@@ -3,12 +3,18 @@ import User from '@/models/User';
 import dbConnect from '@/lib/dbConnect';
 import { getToken } from 'next-auth/jwt';
 
+// Define valid options for enums
+const validACOptions = ['normal_split','inverter_split','central','concealed','window_ac','desert_ac','none'];
+const validElectricityOptions = ['no_electricity','solar_panels','amber_subscription','only_government_electricity'];
+const validWaterOptions = ['drinkable','non_drinkable','no_water'];
+const validRooftopOptions = ['shared','private'];
+
 export default async function handler(req, res) {
   await dbConnect();
-  
+
   const { id } = req.query;
   const token = await getToken({ req });
-  
+
   if (!token) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -27,10 +33,9 @@ export default async function handler(req, res) {
       const serializedProperty = {
         ...property,
         _id: property._id.toString(),
-          contractType: property.contractType, // Add this
-  ownershipType: property.ownershipType, // Add this
-    isFeatured: property.isFeatured, // Add this
-
+        contractType: property.contractType,
+        ownershipType: property.ownershipType,
+        isFeatured: property.isFeatured,
         owner: property.owner ? {
           ...property.owner,
           _id: property.owner._id.toString()
@@ -48,20 +53,42 @@ export default async function handler(req, res) {
       if (!property) {
         return res.status(404).json({ error: 'Property not found' });
       }
-      
+
       // Check ownership
       if (property.owner.toString() !== token.sub) {
         return res.status(403).json({ error: 'Forbidden' });
       }
-      
-      const { 
-        title, description, price, location, 
+
+      const {
+        title, description, price, location,
         propertyType, bedrooms, bathrooms, area,
         latitude, longitude, pinLocation, images,
-        contractType, ownershipType
+        contractType, ownershipType, age,
+        airConditioning,
+        privateParking,
+        entrances,
+        electricity,
+        water,
+        violations,
+        rooftopOwnership,
+        video,
       } = req.body;
-      
-      // Update property
+
+      // Validate enum fields
+      if (!validACOptions.includes(airConditioning)) {
+        return res.status(400).json({ error: 'Invalid air conditioning option' });
+      }
+      if (!validElectricityOptions.includes(electricity)) {
+        return res.status(400).json({ error: 'Invalid electricity option' });
+      }
+      if (!validWaterOptions.includes(water)) {
+        return res.status(400).json({ error: 'Invalid water option' });
+      }
+      if (!validRooftopOptions.includes(rooftopOwnership)) {
+        return res.status(400).json({ error: 'Invalid rooftop ownership option' });
+      }
+
+      // Update property with explicit type conversions
       property.title = title;
       property.description = description;
       property.price = Number(price);
@@ -79,9 +106,18 @@ export default async function handler(req, res) {
       property.images = images;
       property.contractType = contractType;
       property.ownershipType = ownershipType;
+      property.age = age;
+      property.airConditioning = airConditioning;
+      property.privateParking = Boolean(privateParking);
+      property.entrances = Number(entrances);
+      property.electricity = electricity;
+      property.water = water;
+      property.violations = Boolean(violations);
+      property.rooftopOwnership = rooftopOwnership;
+      property.video = video;
       
       await property.save();
-      
+
       return res.status(200).json(property);
     }
     else if (req.method === 'DELETE') {

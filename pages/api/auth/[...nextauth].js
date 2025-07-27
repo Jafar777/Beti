@@ -3,7 +3,9 @@ import CredentialsProvider from "next-auth/providers/credentials"
 import User from '@/models/User'
 import dbConnect from '@/lib/dbConnect'
 import { comparePassword } from '@/lib/passwordUtils'
-
+const baseUrl = process.env.VERCEL_URL 
+  ? `https://${process.env.VERCEL_URL}` 
+  : process.env.NEXTAUTH_URL;
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -12,6 +14,7 @@ export const authOptions = {
         mobile: { label: "Mobile", type: "text" },
         password: { label: "Password", type: "password" }
       },
+      
       async authorize(credentials) {
         try {
           await dbConnect();
@@ -60,6 +63,15 @@ export const authOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  cookies: {
+    callbackUrl: {
+      name: `${baseUrl ? new URL(baseUrl).hostname : '__Secure-next-auth.callback-url'}`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: true
+      }}},
   pages: {
     signIn: '/auth/signin',
     error: '/auth/signin', // Redirect to signin on error

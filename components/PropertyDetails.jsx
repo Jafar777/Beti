@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import {FaBed,FaBath,FaRulerCombined,FaMapMarkerAlt,FaEnvelope,FaRegHeart, FaHeart, FaRegShareSquare} from 'react-icons/fa';
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaEnvelope, FaRegHeart, FaHeart, FaRegShareSquare } from 'react-icons/fa';
 import SinglePropertyMap from '@/components/SinglePropertyMap';
 import { useSession, signIn } from "next-auth/react";
 import { useLanguage } from '@/context/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { FaEye } from 'react-icons/fa';
+import { TbContract } from "react-icons/tb";
 
 
 export default function PropertyDetails({ property, isLikedByCurrentUser }) {
@@ -56,7 +57,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
     }
   }, [property]);
 
-    useEffect(() => {
+  useEffect(() => {
     // Only track views for non-owners and non-logged-in users
     if (!session || (session && session.user.id !== property.owner?._id?.toString())) {
       const trackView = async () => {
@@ -70,7 +71,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
           console.error('View tracking failed:', error);
         }
       };
-      
+
       trackView();
     }
   }, [property._id, session, property.owner?._id]);
@@ -114,7 +115,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
       }
 
       const data = await response.json();
-      
+
       // Update state from server response
       setIsLiked(data.isLiked);
       setLikesCount(data.updatedLikes);
@@ -129,7 +130,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
       setIsLiking(false);
     }
   };
-  
+
   const handleShare = () => {
     const url = `${window.location.origin}/properties/${property._id}`;
     navigator.clipboard.writeText(url).then(() => {
@@ -186,9 +187,8 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
           <button
             onClick={handleLike}
             disabled={isLiking}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
-              isLiked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${isLiked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
           >
             <div className="text-sm font-medium mt-1 text-gray-600">{likesCount}</div>
             {isLiked ? <FaHeart className="text-xl text-red-500" /> : <FaRegHeart className="text-xl" />}
@@ -204,7 +204,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
             <span>{t.share || 'Share'}</span>
           </button>
         </div>
-                <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center">
           <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full">
             <FaEye className="text-xl" />
             <span className="text-sm font-medium">{property.views || 0}</span>
@@ -217,20 +217,184 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
       {/* Rest of the component remains the same */}
 
       {/* Property Details */}
-      <div className="p-6 ">
-        <div className='flex justify-center items-center'>
-          <h1 className="text-3xl font-bold text-[#375171] mb-2">
-            {property.title}
-          </h1>
-        </div>
+      <div className="p-6 border-b border-gray-200 ">
 
-        <div className="flex items-center mb-4">
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {t.price}
-          </span>
-          <span className='text-2xl font-bold text-[#375171] mr-4'> ${property.price?.toLocaleString()}</span>
-        </div>
+        <div className='flex justify-around items-center border-b border-gray-200'>
+          <div className=''>
+            <h1 className="text-3xl font-bold text-[#375171] mb-2">
+              {property.title}
+            </h1>
+          </div>
 
+          <div className="flex justify-center items-center mb-4">
+            <span className="text-2xl font-bold text-[#375171] mr-4">
+              {t.price}
+            </span>
+            <span className='text-2xl font-bold text-green-600 mr-4'> ${property.price?.toLocaleString()}</span>
+          </div>
+        </div>
+       
+          <div className="border-b border-gray-200 p-5">
+            <h1 className='text-lg text-[#375171] '>     {t.description || 'Description'}   </h1> 
+          <div className='  text-2xl font-bold text-[#375171] mr-40'>
+            <div>{property.description}</div>
+            <div></div>
+          </div>
+          </div>
+      
+
+
+        {/* details */}
+        <div className=' mt-10'>
+          <h1 className='text-lg text-[#375171] '>{t.pdetails}</h1></div>
+        <div className='flex justify-around border-b border-gray-200'>
+
+          <div className=''>
+            <div className="flex items-center mb-4 ">
+              <span><FaBed className="text-2xl font-bold text-[#375171] mr-4" /></span>
+              <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bedrooms}</span>
+
+              <span className="text-2xl font-bold text-[#375171] mr-4">
+                {property.bedrooms}
+              </span>
+            </div>
+
+            <div className='flex items-center mb-4'>
+              <span><FaRulerCombined className="text-2xl font-bold text-[#375171] mr-4" /></span>
+              <span className='text-2xl font-bold text-[#375171] mr-4'>{t.area}</span>
+
+              <span className="text-2xl font-bold text-[#375171] mr-4">
+                {property.area} {t.meter}
+              </span>
+            </div>
+          </div>
+          <div className=''>
+
+            <div className='flex items-center mb-4'>
+              <span>  <FaBath className="text-2xl font-bold text-[#375171] mr-4" /></span>
+              <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bathrooms}</span>
+
+              <span className="text-2xl font-bold text-[#375171] mr-4">
+                {property.bathrooms}
+              </span>
+            </div>
+            <div className="flex items-center mb-4">
+              <span>  <TbContract className="text-2xl font-bold text-[#375171] mr-4" /></span>
+
+
+              <span className="text-2xl font-bold text-[#375171] mr-4">{t.ownershipType || 'Ownership Type'}</span>
+              <span className="text-2xl font-bold text-[#375171] mr-4">
+                {property.ownershipType === 'green_deed' ? t.green_deed || 'Green Deed' :
+                  property.ownershipType === 'white_deed' ? t.white_deed || 'White Deed' :
+                    property.ownershipType === 'court_decision' ? t.court_decision || 'Court Decision' :
+                      property.ownershipType === 'notary' ? t.notary || 'Notary' :
+                        property.ownershipType === 'emiri' ? t.emiri || 'Emiri' :
+                          property.ownershipType === 'reform' ? t.reform || 'Reform' :
+                            property.ownershipType === 'charitable_endowment' ? t.charitable_endowment || 'Charitable Endowment' :
+                              t.lineage_endowment || 'Lineage Endowment'}
+              </span>
+            </div>
+            // Add to the property details section
+<div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+  {/* Property Age */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.propertyAge || 'Property Age'}:
+    </span>
+    <span>{property.age}</span>
+  </div>
+  
+  {/* Entrances */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.entrances || 'Entrances'}:
+    </span>
+    <span>{property.entrances}</span>
+  </div>
+  
+  {/* Air Conditioning */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.airConditioning || 'Air Conditioning'}:
+    </span>
+    <span>
+      {property.airConditioning === 'none' ? t.none :
+       property.airConditioning === 'normal_split' ? t.normalSplit :
+       property.airConditioning === 'inverter_split' ? t.inverterSplit :
+       property.airConditioning === 'central' ? t.central :
+       property.airConditioning === 'concealed' ? t.concealed :
+       property.airConditioning === 'window_ac' ? t.windowAC :
+       t.desertAC}
+    </span>
+  </div>
+  
+  {/* Private Parking */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.privateParking || 'Private Parking'}:
+    </span>
+    <span>{property.privateParking ? t.yes : t.no}</span>
+  </div>
+  
+  {/* Electricity */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.electricity || 'Electricity'}:
+    </span>
+    <span>
+      {property.electricity === 'no_electricity' ? t.noElectricity :
+       property.electricity === 'solar_panels' ? t.solarPanels :
+       property.electricity === 'amber_subscription' ? t.amberSubscription :
+       t.govElectricity}
+    </span>
+  </div>
+  
+  {/* Water */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.water || 'Water'}:
+    </span>
+    <span>
+      {property.water === 'no_water' ? t.noWater :
+       property.water === 'non_drinkable' ? t.nonDrinkable :
+       t.drinkable}
+    </span>
+  </div>
+  
+  {/* Violations */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.violations || 'Violations'}:
+    </span>
+    <span>{property.violations ? t.yes : t.no}</span>
+  </div>
+  
+  {/* Rooftop Ownership */}
+  <div className="flex items-center">
+    <span className="font-medium text-[#375171] mr-2">
+      {t.rooftopOwnership || 'Rooftop Ownership'}:
+    </span>
+    <span>{property.rooftopOwnership === 'shared' ? t.shared : t.private}</span>
+  </div>
+</div>
+
+{/* Video Player */}
+{property.video && (
+  <div className="mt-6">
+    <h3 className="text-lg font-semibold text-[#375171] mb-2">
+      {t.video || 'Property Video'}
+    </h3>
+    <video 
+      src={property.video} 
+      controls 
+      className="w-full rounded-lg"
+    />
+  </div>
+)}
+
+
+          </div>
+        </div>
         <div className='flex items-center mb-4'>
           <span className=" text-2xl font-bold text-[#375171] mr-4">
             {t.propertyType}
@@ -270,29 +434,9 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
           </span>
         </div>
 
-        <div className="flex items-center mb-4">
-          <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bedroom}</span>
-          <span><FaBed className="text-2xl font-bold text-[#375171] mr-4" /></span>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {property.bedrooms} {property.bedrooms === 1 ? t.bedroom || 'Bedroom' : t.bedrooms || 'Bedrooms'}
-          </span>
-        </div>
 
-        <div className='flex items-center mb-4'>
-          <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bathroom}</span>
-          <span>  <FaBath className="text-2xl font-bold text-[#375171] mr-4" /></span>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {property.bathrooms} {property.bathrooms === 1 ? t.bathroom || 'Bathroom' : t.bathrooms || 'Bathrooms'}
-          </span>
-        </div>
 
-        <div className='flex items-center mb-4'>
-          <span className='text-2xl font-bold text-[#375171] mr-4'>{t.area}</span>
-          <span><FaRulerCombined className="text-2xl font-bold text-[#375171] mr-4" /></span>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {property.area} {t.meter}
-          </span>
-        </div>
+
 
         <div className="flex items-center mb-4">
           <span className="text-2xl font-bold text-[#375171] mr-4">
@@ -318,28 +462,8 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
           </span>
         </div>
 
-        <div className="flex items-center mb-4">
-          <span className="text-2xl font-bold text-[#375171] mr-4">{t.ownershipType || 'Ownership Type'}</span>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {property.ownershipType === 'green_deed' ? t.green_deed || 'Green Deed' :
-              property.ownershipType === 'white_deed' ? t.white_deed || 'White Deed' :
-                property.ownershipType === 'court_decision' ? t.court_decision || 'Court Decision' :
-                  property.ownershipType === 'notary' ? t.notary || 'Notary' :
-                    property.ownershipType === 'emiri' ? t.emiri || 'Emiri' :
-                      property.ownershipType === 'reform' ? t.reform || 'Reform' :
-                        property.ownershipType === 'charitable_endowment' ? t.charitable_endowment || 'Charitable Endowment' :
-                          t.lineage_endowment || 'Lineage Endowment'}
-          </span>
-        </div>
 
-        <div className="flex items-center mb-4">
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {t.description || 'Description'}
-          </span>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {property.description}
-          </span>
-        </div>
+
 
         <div className="h-96 rounded-lg overflow-hidden relative">
           <SinglePropertyMap

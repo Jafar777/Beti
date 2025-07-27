@@ -1,4 +1,7 @@
 import mongoose from 'mongoose';
+if (mongoose.models.Property) {
+  delete mongoose.models.Property;
+}
 
 const propertySchema = new mongoose.Schema({
   title: { type: String, required: true },
@@ -48,6 +51,15 @@ const propertySchema = new mongoose.Schema({
     type: Number, 
     default: 0 
   },
+    age: { type: String }, // عمر العقار
+  airConditioning: { type: String, enum:['normal_split','inverter_split','central','concealed','window_ac','desert_ac','none'], default: 'none' ,required: true }, // المكيفات
+  privateParking: { type: Boolean, default: false }, // موقف سيارات خاص
+  entrances: { type: Number, default: 1 }, // عدد مداخل البيت
+  electricity: { type: String,enum:['no_electricity','solar_panels','amber_subscription','only_government_electricity'], default: 'only_government_electricity' ,required:true}, // الكهرباء
+  water: { type: String, enum:['drinkable','non_drinkable','no_water'] , default:'non_drinkable', required:true }, // المياه
+  violations: { type: Boolean, default: false }, // مخالفات
+  rooftopOwnership: { type: String,enum:['shared','private',], default: 'shared', required:true }, // ملكية سطح العقار
+  video: { type: String },
     governorate: { type: String, required: true },
   city: { type: String, required: true },
   district: { type: String, required: true },
