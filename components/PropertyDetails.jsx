@@ -1,14 +1,27 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaEnvelope, FaRegHeart, FaHeart, FaRegShareSquare } from 'react-icons/fa';
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaEnvelope, FaRegHeart, FaHeart, FaRegShareSquare, FaWhatsapp } from 'react-icons/fa';
 import SinglePropertyMap from '@/components/SinglePropertyMap';
 import { useSession, signIn } from "next-auth/react";
 import { useLanguage } from '@/context/LanguageContext';
 import { useRouter } from 'next/navigation';
 import { FaEye } from 'react-icons/fa';
 import { TbContract } from "react-icons/tb";
+import { BiSolidDoorOpen } from "react-icons/bi";
+import { MdElectricBolt } from "react-icons/md";
+import { IoWater } from "react-icons/io5";
+import { TbAirConditioning } from "react-icons/tb";
+import { FaSquareParking } from "react-icons/fa6";
+import { SlCalender } from "react-icons/sl";
+import { RiBillLine } from "react-icons/ri";
+import { PiSolarRoofFill } from "react-icons/pi";
+import { MdOutlineDescription } from "react-icons/md";
+import { MdOutlineLocalPolice } from "react-icons/md";
+import { IoIosStar } from "react-icons/io";
 
+
+import { IoCall } from "react-icons/io5";
 
 export default function PropertyDetails({ property, isLikedByCurrentUser }) {
   const [activeImage, setActiveImage] = useState(0);
@@ -139,29 +152,38 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
       console.error('Failed to copy: ', err);
     });
   };
-
+  
+  const handleWhatsApp = () => {
+    if (!requireAuth()) return;
+    const message = encodeURIComponent(
+      `Hello, I'm interested in your property: ${property.title} (${window.location.origin}/properties/${property._id})`
+    );
+    window.open(`https://wa.me/${owner.mobile}?text=${message}`, '_blank');
+  };
+  
   return (
-    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+     <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-6xl mx-auto">
       {/* Image Gallery */}
       <div className="relative">
         {images.length > 0 ? (
           <>
-            <div className="relative h-96 md:h-[500px]">
+            <div className="relative h-72 md:h-[500px]">
               <Image
                 src={images[activeImage]}
                 alt={property.title}
                 fill
-                className="object-cover"
+                className="object-cover rounded-t-xl"
                 priority
               />
             </div>
 
-            <div className="grid grid-cols-4 gap-2 p-4">
+            <div className="grid grid-cols-4 gap-2 p-4 bg-gray-50">
               {images.map((img, index) => (
                 <div
                   key={index}
-                  className={`relative h-20 cursor-pointer border-2 ${activeImage === index ? 'border-blue-500' : 'border-transparent'
-                    }`}
+                  className={`relative h-20 cursor-pointer rounded-md overflow-hidden border-2 ${
+                    activeImage === index ? 'border-blue-500' : 'border-transparent'
+                  }`}
                   onClick={() => setActiveImage(index)}
                 >
                   <Image
@@ -175,348 +197,367 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
             </div>
           </>
         ) : (
-          <div className="bg-gray-200 w-full h-96 flex items-center justify-center">
+          <div className="bg-gray-200 w-full h-72 flex items-center justify-center rounded-t-xl">
             <span className="text-gray-500">{t.noImages || 'No images available'}</span>
           </div>
         )}
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-row justify-center items-center gap-6 py-4 border-b border-gray-200">
-        <div className="flex flex-col items-center">
-          <button
-            onClick={handleLike}
-            disabled={isLiking}
-            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${isLiked ? 'bg-red-100 text-red-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-          >
-            <div className="text-sm font-medium mt-1 text-gray-600">{likesCount}</div>
-            {isLiked ? <FaHeart className="text-xl text-red-500" /> : <FaRegHeart className="text-xl" />}
-            <span>{isLiked ? t.liked || 'Liked' : t.like || 'Like'}</span>
-          </button>
-        </div>
-        <div className="flex flex-col items-center">
-          <button
-            onClick={handleShare}
-            className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200"
-          >
-            <FaRegShareSquare className="text-xl" />
-            <span>{t.share || 'Share'}</span>
-          </button>
-        </div>
-        <div className="flex flex-col items-center">
-          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-full">
-            <FaEye className="text-xl" />
-            <span className="text-sm font-medium">{property.views || 0}</span>
-          </div>
+      <div className="flex flex-wrap justify-center items-center gap-4 md:gap-6 py-4 px-2 border-b border-gray-200 bg-gray-50">
+        <button
+          onClick={handleLike}
+          disabled={isLiking}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+            isLiked 
+              ? 'bg-red-50 text-red-600 border border-red-200' 
+              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+          }`}
+        >
+          {isLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+          <span>{isLiked ? t.liked || 'Liked' : t.like || 'Like'}</span>
+          <span className="text-sm font-medium">({likesCount})</span>
+        </button>
 
-        </div>
+        <button
+          onClick={handleShare}
+          className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50"
+        >
+          <FaRegShareSquare />
+          <span>{t.share || 'Share'}</span>
+        </button>
 
+        <div className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-full">
+          <FaEye />
+          <span>{property.views || 0} {t.views || 'Views'}</span>
+        </div>
       </div>
 
-      {/* Rest of the component remains the same */}
-
-      {/* Property Details */}
-      <div className="p-6 border-b border-gray-200 ">
-
-        <div className='flex justify-around items-center border-b border-gray-200'>
-          <div className=''>
-            <h1 className="text-3xl font-bold text-[#375171] mb-2">
+      {/* Property Header */}
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
               {property.title}
             </h1>
+            <div className="flex items-center mt-2 text-gray-600">
+              <FaMapMarkerAlt className="mr-1 text-blue-600" />
+              <span>
+                {locationNames.district}, {locationNames.city}, {locationNames.governorate}
+              </span>
+            </div>
           </div>
+          
+          <div className="bg-blue-50 px-4 py-3 rounded-lg">
+            <div className="flex items-center">
+              <span className="text-lg font-medium text-blue-800 mr-2">
+                {t.price}:
+              </span>
+              <span className="text-2xl font-bold text-green-600">
+                ${property.price?.toLocaleString()}
+              </span>
+            </div>
 
-          <div className="flex justify-center items-center mb-4">
-            <span className="text-2xl font-bold text-[#375171] mr-4">
-              {t.price}
-            </span>
-            <span className='text-2xl font-bold text-green-600 mr-4'> ${property.price?.toLocaleString()}</span>
+            <div className="flex items-center mt-1">
+              <TbContract className="text-blue-600 mr-2" />
+              <span className="font-medium text-blue-800">
+                {property.contractType === 'rent' ? t.rent : 
+                 property.contractType === 'sale' ? t.sale : t.mortgage}
+              </span>
+            </div>
           </div>
         </div>
-       
-          <div className="border-b border-gray-200 p-5">
-            <h1 className='text-lg text-[#375171] '>     {t.description || 'Description'}   </h1> 
-          <div className='  text-2xl font-bold text-[#375171] mr-40'>
-            <div>{property.description}</div>
-            <div></div>
+
+        {/* Property Type Badge */}
+        <div className="inline-block bg-gray-100 px-3 py-1 rounded-full text-sm font-medium text-gray-700 mb-6">
+          {property.propertyType === 'apartment' ? t.apartment :
+           property.propertyType === 'villa' ? t.villa :
+           property.propertyType === 'office' ? t.office :
+           property.propertyType === 'full_floor' ? t.full_floor :
+           property.propertyType === 'full_building' ? t.full_building :
+           property.propertyType === 'shop' ? t.shop :
+           property.propertyType === 'house' ? t.house :
+           property.propertyType === 'arabian_house' ? t.arabian_house :
+           property.propertyType === 'farm' ? t.farm :
+           property.propertyType === 'warehouse' ? t.warehouse :
+           property.propertyType === 'seaside_chalet' ? t.seaside_chalet :
+           property.propertyType === 'palace' ? t.palace :
+           property.propertyType === 'showroom' ? t.showroom :
+           property.propertyType === 'wedding_hall' ? t.wedding_hall :
+           t.land}
+        </div>
+      </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 p-6">
+        {/* Left Column - Description */}
+        <div className="lg:col-span-2">
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4 pb-2 border-b border-gray-200">
+              <span className="bg-blue-100 p-2 rounded-full mr-3 ml-3">
+                <MdOutlineDescription className="text-blue-600" />
+              </span>
+              {t.description || 'Description'}
+            </h2>
+            <p className="text-gray-700 leading-relaxed">
+              {property.description}
+            </p>
           </div>
+
+          {/* Key Features */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4 pb-2 border-b border-gray-200">
+              <span className="bg-blue-100 p-2 rounded-full mr-3 ml-3">
+                <IoIosStar className="text-blue-600" />
+              </span>
+              {t.keyFeatures || 'Key Features'}
+            </h2>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <FaBed className="text-xl text-blue-600 mr-3 ml-3" />
+                <div>
+                  <div className="text-gray-500 text-sm">{t.bedrooms}</div>
+                  <div className="text-gray-950 mr-2 font-medium">{property.bedrooms}</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <FaBath className="text-xl text-blue-600 mr-3 ml-3" />
+                <div>
+                  <div className="text-gray-500 text-sm">{t.bathrooms}</div>
+                  <div className="text-gray-950 mr-2 font-medium">{property.bathrooms}</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <FaRulerCombined className="text-xl text-blue-600 mr-3 ml-3" />
+                <div>
+                  <div className="text-gray-500 text-sm">{t.area}</div>
+                  <div className="text-gray-950 mr-2 font-medium">{property.area} {t.meter}</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center p-3 bg-gray-50 rounded-lg">
+                <SlCalender className="text-xl text-blue-600 mr-3 ml-3" />
+                <div>
+                  <div className="text-gray-500 text-sm">{t.propertyAge}</div>
+                  <div className="text-gray-950 mr-2 font-medium">{property.age}</div>
+                </div>
+              </div>
+            </div>
           </div>
-      
 
-
-        {/* details */}
-        <div className=' mt-10'>
-          <h1 className='text-lg text-[#375171] '>{t.pdetails}</h1></div>
-        <div className='flex justify-around border-b border-gray-200'>
-
-          <div className=''>
-            <div className="flex items-center mb-4 ">
-              <span><FaBed className="text-2xl font-bold text-[#375171] mr-4" /></span>
-              <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bedrooms}</span>
-
-              <span className="text-2xl font-bold text-[#375171] mr-4">
-                {property.bedrooms}
-              </span>
+          {/* Property Video */}
+          {property.video && (
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4 pb-2 border-b border-gray-200">
+                <span className="bg-blue-100 p-2 rounded-full mr-2">
+                  <FaRegShareSquare className="text-blue-600" />
+                </span>
+                {t.videoTour || 'Video Tour'}
+              </h2>
+              <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
+                <video 
+                  src={property.video} 
+                  controls 
+                  className="w-full h-full object-cover"
+                />
+              </div>
             </div>
+          )}
 
-            <div className='flex items-center mb-4'>
-              <span><FaRulerCombined className="text-2xl font-bold text-[#375171] mr-4" /></span>
-              <span className='text-2xl font-bold text-[#375171] mr-4'>{t.area}</span>
-
-              <span className="text-2xl font-bold text-[#375171] mr-4">
-                {property.area} {t.meter}
+          {/* Location Map */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4 pb-2 border-b border-gray-200">
+              <span className="bg-blue-100 p-2 rounded-full mr-3 ml-3">
+                <FaMapMarkerAlt className="text-blue-600" />
               </span>
+              {t.location || 'Location'}
+            </h2>
+            <div className="h-80 rounded-lg overflow-hidden border border-gray-200">
+              <SinglePropertyMap
+                position={pinLocation}
+                zoom={15}
+              />
+            </div>
+            <p className="mt-3 text-gray-600 flex items-center">
+              <FaMapMarkerAlt className="mr-2 text-blue-500" />
+              {property.location}
+            </p>
+          </div>
+        </div>
+
+        {/* Right Column - Details */}
+        <div>
+          {/* Ownership Details - Fixed Alignment */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
+              <span className="bg-blue-100 p-2 rounded-full mr-3 ml-3">
+                <TbContract className="text-blue-600" />
+              </span>
+              {t.ownershipDetails || 'Ownership Details'}
+            </h2>
+            
+            <div className="space-y-4">
+              {/* Ownership Type */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <TbContract className="text-blue-600 mr-2" />
+                  <span className="text-gray-600">{t.ownershipType}:</span>
+                </div>
+                <span className="text-gray-950 font-medium">
+                  {property.ownershipType === 'green_deed' ? t.green_deed :
+                   property.ownershipType === 'white_deed' ? t.white_deed :
+                   property.ownershipType === 'court_decision' ? t.court_decision :
+                   property.ownershipType === 'notary' ? t.notary :
+                   property.ownershipType === 'emiri' ? t.emiri :
+                   property.ownershipType === 'reform' ? t.reform :
+                   property.ownershipType === 'charitable_endowment' ? t.charitable_endowment :
+                   t.lineage_endowment}
+                </span>
+              </div>
+              
+              {/* Entrances */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <BiSolidDoorOpen className="text-blue-600 mr-2" />
+                  <span className="text-gray-600">{t.entrances}:</span>
+                </div>
+                <span className="text-gray-950 font-medium">{property.entrances}</span>
+              </div>
+              
+              {/* Violations */}
+              <div className="flex items-center justify-between ">
+                <div className="flex items-center">
+                  <MdOutlineLocalPolice className="text-blue-600 mr-2" />
+                  <span className="text-gray-600">{t.violations}:</span>
+                </div>
+                <span className="font-medium text-gray-950">
+                  {property.violations ? t.yes : t.no}
+                </span>
+              </div>
             </div>
           </div>
-          <div className=''>
 
-            <div className='flex items-center mb-4'>
-              <span>  <FaBath className="text-2xl font-bold text-[#375171] mr-4" /></span>
-              <span className='text-2xl font-bold text-[#375171] mr-4'>{t.bathrooms}</span>
-
-              <span className="text-2xl font-bold text-[#375171] mr-4">
-                {property.bathrooms}
+          {/* Amenities */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
+              <span className="bg-blue-100 p-2 rounded-full mr-3 ml-3">
+                <MdElectricBolt className="text-blue-600 " />
               </span>
+              {t.amenities || 'Amenities'}
+            </h2>
+            
+            <div className="grid grid-cols-1 gap-3">
+              <div className="flex items-center">
+                <MdElectricBolt className="text-blue-500 mr-3" />
+                <span className="text-gray-600 flex-grow">{t.electricity}:</span>
+                <span className="font-medium text-gray-950">
+                  {property.electricity === 'no_electricity' ? t.noElectricity :
+                   property.electricity === 'solar_panels' ? t.solarPanels :
+                   property.electricity === 'amber_subscription' ? t.amberSubscription :
+                   t.govElectricity}
+                </span>
+              </div>
+              
+              <div className="flex items-center">
+                <IoWater className="text-blue-500 mr-3" />
+                <span className="text-gray-600 flex-grow">{t.water}:</span>
+                <span className="font-medium text-gray-950">
+                  {property.water === 'no_water' ? t.noWater :
+                   property.water === 'non_drinkable' ? t.nonDrinkable :
+                   t.drinkable}
+                </span>
+              </div>
+              
+              <div className="flex items-center">
+                <TbAirConditioning className="text-blue-500 mr-3" />
+                <span className="text-gray-600 flex-grow">{t.airConditioning}:</span>
+                <span className="font-medium text-gray-950">
+                  {property.airConditioning === 'none' ? t.none :
+                   property.airConditioning === 'normal_split' ? t.normalSplit :
+                   property.airConditioning === 'inverter_split' ? t.inverterSplit :
+                   property.airConditioning === 'central' ? t.central :
+                   property.airConditioning === 'concealed' ? t.concealed :
+                   property.airConditioning === 'window_ac' ? t.windowAC :
+                   t.desertAC}
+                </span>
+              </div>
+              
+              <div className="flex items-center">
+                <FaSquareParking className="text-blue-500 mr-3" />
+                <span className="text-gray-600 flex-grow">{t.privateParking}:</span>
+                <span className="font-medium text-gray-950">
+                  {property.privateParking ? t.yes : t.no}
+                </span>
+              </div>
+              
+              <div className="flex items-center">
+                <PiSolarRoofFill className="text-blue-500 mr-3" />
+                <span className="text-gray-600 flex-grow">{t.rooftopOwnership}:</span>
+                <span className="font-medium text-gray-950">
+                  {property.rooftopOwnership === 'shared' ? t.shared : t.private}
+                </span>
+              </div>
             </div>
-            <div className="flex items-center mb-4">
-              <span>  <TbContract className="text-2xl font-bold text-[#375171] mr-4" /></span>
+          </div>
 
+   
+         {/* Owner Contact */}
+<div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+  <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
+    <span className="bg-blue-100 p-2 rounded-full mr-3">
+      <FaEnvelope className="text-blue-600" />
+    </span>
+    {t.contactOwner || 'Contact Owner'}
+  </h2>
 
-              <span className="text-2xl font-bold text-[#375171] mr-4">{t.ownershipType || 'Ownership Type'}</span>
-              <span className="text-2xl font-bold text-[#375171] mr-4">
-                {property.ownershipType === 'green_deed' ? t.green_deed || 'Green Deed' :
-                  property.ownershipType === 'white_deed' ? t.white_deed || 'White Deed' :
-                    property.ownershipType === 'court_decision' ? t.court_decision || 'Court Decision' :
-                      property.ownershipType === 'notary' ? t.notary || 'Notary' :
-                        property.ownershipType === 'emiri' ? t.emiri || 'Emiri' :
-                          property.ownershipType === 'reform' ? t.reform || 'Reform' :
-                            property.ownershipType === 'charitable_endowment' ? t.charitable_endowment || 'Charitable Endowment' :
-                              t.lineage_endowment || 'Lineage Endowment'}
-              </span>
-            </div>
-            // Add to the property details section
-<div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-  {/* Property Age */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.propertyAge || 'Property Age'}:
-    </span>
-    <span>{property.age}</span>
+  <div className="flex items-center mb-4">
+    <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-blue-200">
+      {owner.image ? (
+        <Image
+          src={owner.image}
+          alt={owner.firstName}
+          width={64}
+          height={64}
+          className="object-cover w-full h-full"
+        />
+      ) : (
+        <div className="bg-gray-200 w-full h-full flex items-center justify-center">
+          <span className="text-2xl">👤</span>
+        </div>
+      )}
+    </div>
+    <div>
+      <p className="font-medium text-lg text-gray-950">
+        {owner.firstName} {owner.lastName}
+      </p>
+
+    </div>
   </div>
-  
-  {/* Entrances */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.entrances || 'Entrances'}:
-    </span>
-    <span>{property.entrances}</span>
-  </div>
-  
-  {/* Air Conditioning */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.airConditioning || 'Air Conditioning'}:
-    </span>
-    <span>
-      {property.airConditioning === 'none' ? t.none :
-       property.airConditioning === 'normal_split' ? t.normalSplit :
-       property.airConditioning === 'inverter_split' ? t.inverterSplit :
-       property.airConditioning === 'central' ? t.central :
-       property.airConditioning === 'concealed' ? t.concealed :
-       property.airConditioning === 'window_ac' ? t.windowAC :
-       t.desertAC}
-    </span>
-  </div>
-  
-  {/* Private Parking */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.privateParking || 'Private Parking'}:
-    </span>
-    <span>{property.privateParking ? t.yes : t.no}</span>
-  </div>
-  
-  {/* Electricity */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.electricity || 'Electricity'}:
-    </span>
-    <span>
-      {property.electricity === 'no_electricity' ? t.noElectricity :
-       property.electricity === 'solar_panels' ? t.solarPanels :
-       property.electricity === 'amber_subscription' ? t.amberSubscription :
-       t.govElectricity}
-    </span>
-  </div>
-  
-  {/* Water */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.water || 'Water'}:
-    </span>
-    <span>
-      {property.water === 'no_water' ? t.noWater :
-       property.water === 'non_drinkable' ? t.nonDrinkable :
-       t.drinkable}
-    </span>
-  </div>
-  
-  {/* Violations */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.violations || 'Violations'}:
-    </span>
-    <span>{property.violations ? t.yes : t.no}</span>
-  </div>
-  
-  {/* Rooftop Ownership */}
-  <div className="flex items-center">
-    <span className="font-medium text-[#375171] mr-2">
-      {t.rooftopOwnership || 'Rooftop Ownership'}:
-    </span>
-    <span>{property.rooftopOwnership === 'shared' ? t.shared : t.private}</span>
+
+  <div className="space-y-3">
+    <button
+      onClick={handleMessageOwner}
+      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+    >
+      <FaEnvelope className="mr-2" />
+      <span className='mr-2'>{t.messageOwner || 'Message Owner'}</span>
+    </button>
+    
+    <button
+      onClick={handleWhatsApp}
+      className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+    >
+      <FaWhatsapp className="mr-2 text-xl" />
+      <span className='mr-2'>{t.whatsapp || 'Contact via WhatsApp'}</span>
+    </button>
   </div>
 </div>
-
-{/* Video Player */}
-{property.video && (
-  <div className="mt-6">
-    <h3 className="text-lg font-semibold text-[#375171] mb-2">
-      {t.video || 'Property Video'}
-    </h3>
-    <video 
-      src={property.video} 
-      controls 
-      className="w-full rounded-lg"
-    />
-  </div>
-)}
-
-
-          </div>
         </div>
-        <div className='flex items-center mb-4'>
-          <span className=" text-2xl font-bold text-[#375171] mr-4">
-            {t.propertyType}
-          </span>
-          <span className=" text-2xl font-bold text-[#375171] mr-4">
-            {
-              property.propertyType === 'apartment' ? t.apartment || 'Apartment' :
-                property.propertyType === 'villa' ? t.villa || 'Villa' :
-                  property.propertyType === 'office' ? t.office || 'Office' :
-                    property.propertyType === 'full_floor' ? t.full_floor || 'full Floor' :
-                      property.propertyType === 'full_building' ? t.full_building || 'Full Building' :
-                        property.propertyType === 'shop' ? t.shop || 'Shop' :
-                          property.propertyType === 'house' ? t.house || 'House' :
-                            property.propertyType === 'arabian_house' ? t.arabian_house || 'Arabian House' :
-                              property.propertyType === 'farm' ? t.farm || 'Farm' :
-                                property.propertyType === 'warehouse' ? t.warehouse || 'Warehouse' :
-                                  property.propertyType === 'seaside_chalet' ? t.seaside_chalet || 'Seaside Chalet' :
-                                    property.propertyType === 'palace' ? t.palace || 'Palace' :
-                                      property.propertyType === 'showroom' ? t.showroom || 'Showroom' :
-                                        property.propertyType === 'wedding_hall' ? t.wedding_hall || 'Wedding Hall' :
-                                          t.land || 'Land'
-            }
-          </span>
-        </div>
-
-        {/* Contract Type */}
-        <div className='flex items-center mb-4'>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {t.contractType || 'Contract Type'}
-          </span>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {property.contractType === 'rent'
-              ? (t.rent || 'Rent')
-              : property.contractType === 'sale'
-                ? (t.sale || 'Sale')
-                : (t.mortgage || 'Mortgage')}
-          </span>
-        </div>
-
-
-
-
-
-        <div className="flex items-center mb-4">
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {t.location}
-          </span>
-          <div>
-            <div className="text-2xl font-bold text-[#375171]">
-              {locationNames.governorate}
-            </div>
-            <div className="text-xl text-[#375171]">
-              {locationNames.city} - {locationNames.district}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center mb-4">
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {t.location || 'Location'}
-          </span>
-          <span> <FaMapMarkerAlt className="text-2xl font-bold text-[#375171] mr-4" /></span>
-          <span className="text-2xl font-bold text-[#375171] mr-4">
-            {property.location}
-          </span>
-        </div>
-
-
-
-
-        <div className="h-96 rounded-lg overflow-hidden relative">
-          <SinglePropertyMap
-            position={pinLocation}
-            zoom={15}
-          />
-        </div>
-      </div>
-
-      <div className="border-t pt-6">
-        <h2 className="text-xl font-semibold text-[#375171] mb-4">
-          {t.contactOwner || 'Contact Owner'}
-        </h2>
-
-        {isOwner ? (
-          <div className="w-16 h-16 rounded-full overflow-hidden mr-4">
-            {owner.image ? (
-              <Image
-                src={owner.image}
-                alt={owner.firstName}
-                width={64}
-                height={64}
-                className="object-cover object-center w-full h-full transition-transform duration-300 ease-in-out"
-              />
-            ) : (
-              <div className="bg-gray-200 border-2 border-dashed rounded-full w-16 h-16 flex items-center justify-center mr-4">
-                <span className="text-gray-500 text-2xl">👤</span>
-              </div>
-            )}
-            <div>
-              <p className="font-medium">
-                {owner.firstName} {owner.lastName}
-              </p>
-              <p className="text-gray-600">
-                {owner.mobile}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center p-4 bg-gray-50 rounded-lg">
-            <p className="text-gray-700 mb-4">
-              {t.interestedInProperty || 'Interested in this property?'}
-            </p>
-            <button
-              onClick={handleMessageOwner}
-              className="flex items-center bg-[#375171] text-white px-6 py-3 rounded-lg hover:bg-[#2d4360]"
-            >
-              <FaEnvelope className="mr-2" />
-              <span>{t.messageOwner || 'Message Owner'}</span>
-            </button>
-          </div>
-        )}
       </div>
     </div>
+  
   );
 }

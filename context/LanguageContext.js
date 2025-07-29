@@ -391,6 +391,12 @@ drinkable: "صالحة للشرب",
 shared: "مشتركة",
 private: "خاصة",
 videoUploadError: "فشل تحميل الفيديو",
+messageOwner: "مراسلة صاحب العقار",
+whatsapp : 'مراسلة صاحب العقار',
+contactOwner : 'التواصل',
+amenities : 'وسائل الراحة',
+ownershipDetails : 'تفاصيل الملكية',
+keyFeatures : 'مزايا العقار'
 
     }
   };
