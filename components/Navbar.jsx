@@ -8,9 +8,16 @@ import { RxHamburgerMenu } from "react-icons/rx";
 import { IoNotificationsOutline } from "react-icons/io5"; // Added notifications icon
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Fulllogo from "@/assets/Fulllogo.svg";
 import { useLanguage } from '@/context/LanguageContext';
+import { IoSettingsSharp } from "react-icons/io5";
+import { BsFillHouseAddFill } from "react-icons/bs";
+import { AiFillDashboard } from "react-icons/ai";
+import { RiVipDiamondFill } from "react-icons/ri";
+import { FaHeart } from "react-icons/fa";
+import { IoChatboxEllipses } from "react-icons/io5";
+import { IoNotifications } from "react-icons/io5";
 
 export default function Navbar({session, refreshSession}) {
   const router = useRouter();
@@ -24,7 +31,8 @@ export default function Navbar({session, refreshSession}) {
   const notificationsRef = useRef(null); // Ref for notifications dropdown
   const [imageVersion, setImageVersion] = useState(0);
   const [notifications, setNotifications] = useState([]); // State for notifications
-
+  const pathname = usePathname(); // Add this import
+  const isDashboard = pathname.startsWith('/dashboard');
   // Check if mobile view
   useEffect(() => {
     const checkMobile = () => {
@@ -94,11 +102,22 @@ export default function Navbar({session, refreshSession}) {
     setNotifications(notifications.map(notif => ({...notif, read: true})));
   };
 
+  // Dashboard navigation items
+  const dashboardLinks = [
+    { href: '/dashboard', icon: AiFillDashboard, label: t.dashboard || 'Dashboard' },
+    { href: '/dashboard/settings', icon: IoSettingsSharp, label: t.profileSettings || 'Settings' },
+    { href: '/dashboard/listings', icon: BsFillHouseAddFill, label: t.yourListings || 'Listings' },
+    { href: '/dashboard/liked', icon: FaHeart, label: t.liked || 'Liked' },
+    { href: '/dashboard/chat', icon: IoChatboxEllipses, label: t.chat || 'Chat' },
+    { href: '/dashboard/notifications', icon: IoNotifications, label: t.notifications || 'Notifications' },
+    { href: '/dashboard/subscription', icon: RiVipDiamondFill, label: t.subscription || 'Subscription' },
+  ];
   // Get unread count
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <nav className="bg-white shadow-md">
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Navbar Container */}
         <div className="flex items-center justify-between h-16 md:h-20">
@@ -300,6 +319,25 @@ export default function Navbar({session, refreshSession}) {
       {isMenuOpen && isMobile && (
         <div className="md:hidden bg-white border-t">
           <div className="max-w-7xl mx-auto px-4 py-3 space-y-3">
+             {isDashboard && (
+              <div className="space-y-2 mb-4">
+                {dashboardLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`flex items-center px-4 py-3 rounded-lg text-lg ${
+                      pathname === link.href
+                        ? 'bg-[#2d4360] text-white'
+                        : 'bg-gray-200 text-gray-800'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <link.icon className="mr-2" />
+                    <span>{link.label}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
             <button
               onClick={toggleLanguage}
               className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg"
