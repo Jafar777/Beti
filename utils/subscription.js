@@ -19,7 +19,7 @@ export const PLANS = {
 
 // Free plan limits
 const FREE_PLAN_LIMITS = {
-  maxListings: 3,
+  maxListings: 1,
   maxFeatured: 0
 };
 

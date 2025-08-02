@@ -20,22 +20,31 @@ export default function AllListings() {
   const { data: session } = useSession();
   const t = translations[language] || {};
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const res = await fetch('/api/properties');
-        const data = await res.json();
-        setProperties(data);
-        setFilteredProperties(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Failed to fetch properties:', error);
-        setLoading(false);
+useEffect(() => {
+  const fetchProperties = async () => {
+    try {
+      const res = await fetch('/api/properties');
+      // 1) تأكد من نجاح الاستعلام
+      if (!res.ok) {
+        console.error('API Error:', res.status, await res.text());
+        return; // أو يمكنك إظهار رسالة للمستخدم
       }
-    };
-    
-    fetchProperties();
-  }, []);
+      const data = await res.json();
+      // 2) تأكد من أن البيانات هي مصفوفة
+      if (!Array.isArray(data)) {
+        console.error('Expected array but got:', data);
+        return;
+      }
+      setProperties(data);
+      setFilteredProperties(data);
+    } catch (error) {
+      console.error('Failed to fetch properties:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchProperties();
+}, []);
 
   // Apply filters when filters change
   useEffect(() => {

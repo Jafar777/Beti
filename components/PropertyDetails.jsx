@@ -153,13 +153,17 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
     });
   };
   
-  const handleWhatsApp = () => {
-    if (!requireAuth()) return;
-    const message = encodeURIComponent(
-      `Hello, I'm interested in your property: ${property.title} (${window.location.origin}/properties/${property._id})`
-    );
-    window.open(`https://wa.me/${owner.mobile}?text=${message}`, '_blank');
-  };
+const handleWhatsApp = () => {
+  if (!session) {
+    signIn();
+    return;
+  }
+  
+  const message = encodeURIComponent(
+    `Hello, I'm interested in your property: ${property.title} (${window.location.origin}/properties/${property._id})`
+  );
+  window.open(`https://wa.me/${owner.mobile}?text=${message}`, '_blank');
+};
   
   return (
      <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-6xl mx-auto">
@@ -538,14 +542,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
   </div>
 
   <div className="space-y-3">
-    <button
-      onClick={handleMessageOwner}
-      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
-    >
-      <FaEnvelope className="mr-2" />
-      <span className='mr-2'>{t.messageOwner || 'Message Owner'}</span>
-    </button>
-    
+
     <button
       onClick={handleWhatsApp}
       className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
