@@ -344,7 +344,10 @@ const markerIcon = useMemo(() => ({
     </div>
   ) : (
     <div className="bg-gray-200 w-full h-[500px] flex items-center justify-center rounded-xl">
-      <p>{t.loadingMap || "جاري تحميل الخريطة..."}</p>
+      <div className="flex flex-col items-center">
+        <div className="w-12 h-12 border-4 border-[#375171] border-t-transparent rounded-full animate-spin mb-4"></div>
+        <p>{t.loadingMap || "جاري تحميل الخريطة..."}</p>
+      </div>
     </div>
   );
 }

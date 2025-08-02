@@ -21,8 +21,6 @@ import { MdOutlineLocalPolice } from "react-icons/md";
 import { IoIosStar } from "react-icons/io";
 
 
-import { IoCall } from "react-icons/io5";
-
 export default function PropertyDetails({ property, isLikedByCurrentUser }) {
   const [activeImage, setActiveImage] = useState(0);
   const [isLiking, setIsLiking] = useState(false);
@@ -41,6 +39,14 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
       setLikesCount(prev => isLikedByCurrentUser ? prev : prev + 1);
     }
   }, [isLikedByCurrentUser]);
+  useEffect(() => {
+  // Dispatch event to hide loading overlay
+  window.dispatchEvent(new CustomEvent('routechangecomplete'));
+  
+  return () => {
+    // Cleanup if needed
+  };
+}, []);
 
   const images = property.images || [];
   const owner = property.owner || {};
@@ -152,21 +158,21 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
       console.error('Failed to copy: ', err);
     });
   };
-  
-const handleWhatsApp = () => {
-  if (!session) {
-    signIn();
-    return;
-  }
-  
-  const message = encodeURIComponent(
-    `Hello, I'm interested in your property: ${property.title} (${window.location.origin}/properties/${property._id})`
-  );
-  window.open(`https://wa.me/${owner.mobile}?text=${message}`, '_blank');
-};
-  
+
+  const handleWhatsApp = () => {
+    if (!session) {
+      signIn();
+      return;
+    }
+
+    const message = encodeURIComponent(
+      `Hello, I'm interested in your property: ${property.title} (${window.location.origin}/properties/${property._id})`
+    );
+    window.open(`https://wa.me/${owner.mobile}?text=${message}`, '_blank');
+  };
+
   return (
-     <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-6xl mx-auto">
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-6xl mx-auto">
       {/* Image Gallery */}
       <div className="relative">
         {images.length > 0 ? (
@@ -185,9 +191,8 @@ const handleWhatsApp = () => {
               {images.map((img, index) => (
                 <div
                   key={index}
-                  className={`relative h-20 cursor-pointer rounded-md overflow-hidden border-2 ${
-                    activeImage === index ? 'border-blue-500' : 'border-transparent'
-                  }`}
+                  className={`relative h-20 cursor-pointer rounded-md overflow-hidden border-2 ${activeImage === index ? 'border-blue-500' : 'border-transparent'
+                    }`}
                   onClick={() => setActiveImage(index)}
                 >
                   <Image
@@ -212,11 +217,10 @@ const handleWhatsApp = () => {
         <button
           onClick={handleLike}
           disabled={isLiking}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
-            isLiked 
-              ? 'bg-red-50 text-red-600 border border-red-200' 
+          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${isLiked
+              ? 'bg-red-50 text-red-600 border border-red-200'
               : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
-          }`}
+            }`}
         >
           {isLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
           <span>{isLiked ? t.liked || 'Liked' : t.like || 'Like'}</span>
@@ -251,7 +255,7 @@ const handleWhatsApp = () => {
               </span>
             </div>
           </div>
-          
+
           <div className="bg-blue-50 px-4 py-3 rounded-lg">
             <div className="flex items-center">
               <span className="text-lg font-medium text-blue-800 mr-2">
@@ -265,8 +269,8 @@ const handleWhatsApp = () => {
             <div className="flex items-center mt-1">
               <TbContract className="text-blue-600 mr-2" />
               <span className="font-medium text-blue-800">
-                {property.contractType === 'rent' ? t.rent : 
-                 property.contractType === 'sale' ? t.sale : t.mortgage}
+                {property.contractType === 'rent' ? t.rent :
+                  property.contractType === 'sale' ? t.sale : t.mortgage}
               </span>
             </div>
           </div>
@@ -275,20 +279,20 @@ const handleWhatsApp = () => {
         {/* Property Type Badge */}
         <div className="inline-block bg-gray-100 px-3 py-1 rounded-full text-sm font-medium text-gray-700 mb-6">
           {property.propertyType === 'apartment' ? t.apartment :
-           property.propertyType === 'villa' ? t.villa :
-           property.propertyType === 'office' ? t.office :
-           property.propertyType === 'full_floor' ? t.full_floor :
-           property.propertyType === 'full_building' ? t.full_building :
-           property.propertyType === 'shop' ? t.shop :
-           property.propertyType === 'house' ? t.house :
-           property.propertyType === 'arabian_house' ? t.arabian_house :
-           property.propertyType === 'farm' ? t.farm :
-           property.propertyType === 'warehouse' ? t.warehouse :
-           property.propertyType === 'seaside_chalet' ? t.seaside_chalet :
-           property.propertyType === 'palace' ? t.palace :
-           property.propertyType === 'showroom' ? t.showroom :
-           property.propertyType === 'wedding_hall' ? t.wedding_hall :
-           t.land}
+            property.propertyType === 'villa' ? t.villa :
+              property.propertyType === 'office' ? t.office :
+                property.propertyType === 'full_floor' ? t.full_floor :
+                  property.propertyType === 'full_building' ? t.full_building :
+                    property.propertyType === 'shop' ? t.shop :
+                      property.propertyType === 'house' ? t.house :
+                        property.propertyType === 'arabian_house' ? t.arabian_house :
+                          property.propertyType === 'farm' ? t.farm :
+                            property.propertyType === 'warehouse' ? t.warehouse :
+                              property.propertyType === 'seaside_chalet' ? t.seaside_chalet :
+                                property.propertyType === 'palace' ? t.palace :
+                                  property.propertyType === 'showroom' ? t.showroom :
+                                    property.propertyType === 'wedding_hall' ? t.wedding_hall :
+                                      t.land}
         </div>
       </div>
 
@@ -316,7 +320,7 @@ const handleWhatsApp = () => {
               </span>
               {t.keyFeatures || 'Key Features'}
             </h2>
-            
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                 <FaBed className="text-xl text-blue-600 mr-3 ml-3" />
@@ -325,7 +329,7 @@ const handleWhatsApp = () => {
                   <div className="text-gray-950 mr-2 font-medium">{property.bedrooms}</div>
                 </div>
               </div>
-              
+
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                 <FaBath className="text-xl text-blue-600 mr-3 ml-3" />
                 <div>
@@ -333,7 +337,7 @@ const handleWhatsApp = () => {
                   <div className="text-gray-950 mr-2 font-medium">{property.bathrooms}</div>
                 </div>
               </div>
-              
+
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                 <FaRulerCombined className="text-xl text-blue-600 mr-3 ml-3" />
                 <div>
@@ -341,7 +345,7 @@ const handleWhatsApp = () => {
                   <div className="text-gray-950 mr-2 font-medium">{property.area} {t.meter}</div>
                 </div>
               </div>
-              
+
               <div className="flex items-center p-3 bg-gray-50 rounded-lg">
                 <SlCalender className="text-xl text-blue-600 mr-3 ml-3" />
                 <div>
@@ -362,9 +366,9 @@ const handleWhatsApp = () => {
                 {t.videoTour || 'Video Tour'}
               </h2>
               <div className="aspect-video bg-gray-200 rounded-lg overflow-hidden">
-                <video 
-                  src={property.video} 
-                  controls 
+                <video
+                  src={property.video}
+                  controls
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -402,7 +406,7 @@ const handleWhatsApp = () => {
               </span>
               {t.ownershipDetails || 'Ownership Details'}
             </h2>
-            
+
             <div className="space-y-4">
               {/* Ownership Type */}
               <div className="flex items-center justify-between">
@@ -412,16 +416,16 @@ const handleWhatsApp = () => {
                 </div>
                 <span className="text-gray-950 font-medium">
                   {property.ownershipType === 'green_deed' ? t.green_deed :
-                   property.ownershipType === 'white_deed' ? t.white_deed :
-                   property.ownershipType === 'court_decision' ? t.court_decision :
-                   property.ownershipType === 'notary' ? t.notary :
-                   property.ownershipType === 'emiri' ? t.emiri :
-                   property.ownershipType === 'reform' ? t.reform :
-                   property.ownershipType === 'charitable_endowment' ? t.charitable_endowment :
-                   t.lineage_endowment}
+                    property.ownershipType === 'white_deed' ? t.white_deed :
+                      property.ownershipType === 'court_decision' ? t.court_decision :
+                        property.ownershipType === 'notary' ? t.notary :
+                          property.ownershipType === 'emiri' ? t.emiri :
+                            property.ownershipType === 'reform' ? t.reform :
+                              property.ownershipType === 'charitable_endowment' ? t.charitable_endowment :
+                                t.lineage_endowment}
                 </span>
               </div>
-              
+
               {/* Entrances */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
@@ -430,7 +434,7 @@ const handleWhatsApp = () => {
                 </div>
                 <span className="text-gray-950 font-medium">{property.entrances}</span>
               </div>
-              
+
               {/* Violations */}
               <div className="flex items-center justify-between ">
                 <div className="flex items-center">
@@ -452,43 +456,43 @@ const handleWhatsApp = () => {
               </span>
               {t.amenities || 'Amenities'}
             </h2>
-            
+
             <div className="grid grid-cols-1 gap-3">
               <div className="flex items-center">
                 <MdElectricBolt className="text-blue-500 mr-3" />
                 <span className="text-gray-600 flex-grow">{t.electricity}:</span>
                 <span className="font-medium text-gray-950">
                   {property.electricity === 'no_electricity' ? t.noElectricity :
-                   property.electricity === 'solar_panels' ? t.solarPanels :
-                   property.electricity === 'amber_subscription' ? t.amberSubscription :
-                   t.govElectricity}
+                    property.electricity === 'solar_panels' ? t.solarPanels :
+                      property.electricity === 'amber_subscription' ? t.amberSubscription :
+                        t.govElectricity}
                 </span>
               </div>
-              
+
               <div className="flex items-center">
                 <IoWater className="text-blue-500 mr-3" />
                 <span className="text-gray-600 flex-grow">{t.water}:</span>
                 <span className="font-medium text-gray-950">
                   {property.water === 'no_water' ? t.noWater :
-                   property.water === 'non_drinkable' ? t.nonDrinkable :
-                   t.drinkable}
+                    property.water === 'non_drinkable' ? t.nonDrinkable :
+                      t.drinkable}
                 </span>
               </div>
-              
+
               <div className="flex items-center">
                 <TbAirConditioning className="text-blue-500 mr-3" />
                 <span className="text-gray-600 flex-grow">{t.airConditioning}:</span>
                 <span className="font-medium text-gray-950">
                   {property.airConditioning === 'none' ? t.none :
-                   property.airConditioning === 'normal_split' ? t.normalSplit :
-                   property.airConditioning === 'inverter_split' ? t.inverterSplit :
-                   property.airConditioning === 'central' ? t.central :
-                   property.airConditioning === 'concealed' ? t.concealed :
-                   property.airConditioning === 'window_ac' ? t.windowAC :
-                   t.desertAC}
+                    property.airConditioning === 'normal_split' ? t.normalSplit :
+                      property.airConditioning === 'inverter_split' ? t.inverterSplit :
+                        property.airConditioning === 'central' ? t.central :
+                          property.airConditioning === 'concealed' ? t.concealed :
+                            property.airConditioning === 'window_ac' ? t.windowAC :
+                              t.desertAC}
                 </span>
               </div>
-              
+
               <div className="flex items-center">
                 <FaSquareParking className="text-blue-500 mr-3" />
                 <span className="text-gray-600 flex-grow">{t.privateParking}:</span>
@@ -496,7 +500,7 @@ const handleWhatsApp = () => {
                   {property.privateParking ? t.yes : t.no}
                 </span>
               </div>
-              
+
               <div className="flex items-center">
                 <PiSolarRoofFill className="text-blue-500 mr-3" />
                 <span className="text-gray-600 flex-grow">{t.rooftopOwnership}:</span>
@@ -507,54 +511,54 @@ const handleWhatsApp = () => {
             </div>
           </div>
 
-   
-         {/* Owner Contact */}
-<div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-  <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
-    <span className="bg-blue-100 p-2 rounded-full mr-3">
-      <FaEnvelope className="text-blue-600" />
-    </span>
-    {t.contactOwner || 'Contact Owner'}
-  </h2>
 
-  <div className="flex items-center mb-4">
-    <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-blue-200">
-      {owner.image ? (
-        <Image
-          src={owner.image}
-          alt={owner.firstName}
-          width={64}
-          height={64}
-          className="object-cover w-full h-full"
-        />
-      ) : (
-        <div className="bg-gray-200 w-full h-full flex items-center justify-center">
-          <span className="text-2xl">👤</span>
-        </div>
-      )}
-    </div>
-    <div>
-      <p className="font-medium text-lg text-gray-950">
-        {owner.firstName} {owner.lastName}
-      </p>
+          {/* Owner Contact */}
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
+              <span className="bg-blue-100 p-2 rounded-full mr-3">
+                <FaEnvelope className="text-blue-600" />
+              </span>
+              {t.contactOwner || 'Contact Owner'}
+            </h2>
 
-    </div>
-  </div>
+            <div className="flex items-center mb-4">
+              <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-blue-200">
+                {owner.image ? (
+                  <Image
+                    src={owner.image}
+                    alt={owner.firstName}
+                    width={64}
+                    height={64}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="bg-gray-200 w-full h-full flex items-center justify-center">
+                    <span className="text-2xl">👤</span>
+                  </div>
+                )}
+              </div>
+              <div>
+                <p className="font-medium text-lg text-gray-950">
+                  {owner.firstName} {owner.lastName}
+                </p>
 
-  <div className="space-y-3">
+              </div>
+            </div>
 
-    <button
-      onClick={handleWhatsApp}
-      className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
-    >
-      <FaWhatsapp className="mr-2 text-xl" />
-      <span className='mr-2'>{t.whatsapp || 'Contact via WhatsApp'}</span>
-    </button>
-  </div>
-</div>
+            <div className="space-y-3">
+
+              <button
+                onClick={handleWhatsApp}
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+              >
+                <FaWhatsapp className="mr-2 text-xl" />
+                <span className='mr-2'>{t.whatsapp || 'Contact via WhatsApp'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  
+
   );
 }

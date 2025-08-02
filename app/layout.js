@@ -1,6 +1,8 @@
+// app/layout.js
 import './globals.css';
-
-import ClientProviders from './ClientProviders'; // Import the new wrapper
+import ClientProviders from './ClientProviders';
+import PageLoader from '@/components/PageLoader';
+import LoadingOverlay from '@/components/LoadingOverlay';
 
 export const metadata = {
   title: 'Beti | بيتي',
@@ -13,9 +15,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         <ClientProviders>
-          
-            {children}
-         
+
+          <PageLoader />
+          <LoadingOverlay />
+          {children}
+
         </ClientProviders>
       </body>
     </html>

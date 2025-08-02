@@ -34,10 +34,11 @@ const FeaturedListings = () => {
     setFeaturedProperties(featured.slice(0, 4)); // Only show max 4 featured properties
   }, [properties]);
 
+
   if (loading) {
     return (
-      <div className="my-12 text-center">
-        <p>{t.loading || 'Loading...'}</p>
+      <div className="my-12 flex justify-center">
+        <div className="w-12 h-12 border-4 border-[#375171] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
