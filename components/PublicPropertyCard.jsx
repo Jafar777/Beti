@@ -84,22 +84,22 @@ export default function PublicPropertyCard({ property }) {
         <div className="flex justify-between border-t border-gray-100 pt-3">
           <div className="flex items-center text-gray-600">
             <FaBed className="mr-1 text-[#375171]" />
-            <span className="text-sm">
-              {property.bedrooms} {property.bedrooms === 1 ? t.bedroom || 'Bed' : t.bedrooms || 'Beds'}
+            <span className="text-sm mr-2">
+             {t.bedrooms} {property.bedrooms}
             </span>
           </div>
 
           <div className="flex items-center text-gray-600">
             <FaBath className="mr-1 text-[#375171]" />
-            <span className="text-sm">
-              {property.bathrooms} {property.bathrooms === 1 ? t.bathroom || 'Bath' : t.bathrooms || 'Baths'}
+            <span className="text-sm mr-2">
+             {t.bathrooms} {property.bathrooms} 
             </span>
           </div>
 
           <div className="flex items-center text-gray-600">
             <FaRulerCombined className="mr-1 text-[#375171]" />
-            <span className="text-sm">
-              {property.area} m²
+            <span className="text-sm mr-2">
+              {property.area} {t.meter}
             </span>
           </div>
         </div>

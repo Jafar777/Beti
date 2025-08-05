@@ -396,8 +396,8 @@ contactOwner : 'التواصل',
 amenities : 'وسائل الراحة',
 ownershipDetails : 'تفاصيل الملكية',
 keyFeatures : 'مزايا العقار',
-whatsapp:'المراسلة عبر الواتساب'
-
+whatsapp:'المراسلة عبر الواتساب',
+propertyInformation: 'معلومات العقار'
     }
   };
 

@@ -147,7 +147,6 @@ export default function GoogleMapComponent({ properties = [] }) {
   const panelRef = useRef(null);
   const [mapStyles, setMapStyles] = useState(roadmapStyles);
   const [selectedProperty, setSelectedProperty] = useState(null);
-  
   const languageContext = useLanguage();
   const language = languageContext?.language || 'en';
   const translations = languageContext?.translations || {};
