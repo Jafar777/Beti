@@ -18,22 +18,11 @@ const userSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
-  subscription: {
-    plan: { 
-      type: String, 
-      enum: ['free', 'golden','diamond'], 
-      default: 'free' 
-    },
-    listingsUsed: { 
-      type: Number, 
-      default: 0 
-    },
-    featuredListings: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Property',
-      default: [] // Add default here
-    }]
-  },
+  coins: { 
+  type: Number, 
+  default: 50 
+},
+
   likedProperties: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Property',

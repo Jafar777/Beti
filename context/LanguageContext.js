@@ -397,7 +397,8 @@ amenities : 'وسائل الراحة',
 ownershipDetails : 'تفاصيل الملكية',
 keyFeatures : 'مزايا العقار',
 whatsapp:'المراسلة عبر الواتساب',
-propertyInformation: 'معلومات العقار'
+propertyInformation: 'معلومات العقار',
+coins :'عملة المنصة'
     }
   };
 

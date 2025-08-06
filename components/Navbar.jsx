@@ -126,7 +126,7 @@ export default function Navbar({session, refreshSession}) {
           <div className="hidden md:flex items-center space-x-4 flex-1">
             <button
               onClick={toggleLanguage}
-              className="flex items-center space-x-2 bg-[#375171] text-white px-2 py-3 rounded-lg text-base font-bold"
+              className="flex items-center space-x-2 bg-[#375171] text-white px-2 py-3 rounded-lg text-base font-bold cursor-pointer"
             >
               <AiOutlineGlobal className="h-5 w-5" />
               <span>{t.language}</span>
@@ -135,7 +135,7 @@ export default function Navbar({session, refreshSession}) {
             {session && (
               <button 
                 onClick={handleAddProperty}
-                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-2 py-3  rounded-lg text-base font-bold"
+                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-2 py-3  rounded-lg text-base font-bold cursor-pointer"
               >
                 <IoMdAdd className="h-5 w-5" />
                 <span>{t.addProperty}</span>
@@ -182,7 +182,7 @@ export default function Navbar({session, refreshSession}) {
               <div className="relative" ref={notificationsRef}>
                 <button 
                   onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                  className="relative p-2 rounded-full hover:bg-gray-100 focus:outline-none"
+                  className="relative p-2 rounded-full hover:bg-gray-100 focus:outline-none cursor-pointer"
                 >
                   <IoNotificationsOutline className="h-6 w-6 text-gray-700" />
                   {unreadCount > 0 && (
@@ -198,7 +198,7 @@ export default function Navbar({session, refreshSession}) {
                       <h3 className="font-bold">{t.notifications || 'Notifications'}</h3>
                       <button 
                         onClick={markAllAsRead}
-                        className="text-sm text-blue-500 hover:text-blue-700"
+                        className="text-sm text-blue-500 hover:text-blue-700 cursor-pointer"
                       >
                         {t.markAllRead || 'Mark all as read'}
                       </button>
@@ -253,7 +253,7 @@ export default function Navbar({session, refreshSession}) {
                       setIsProfileMenuOpen(!isProfileMenuOpen);
                       refreshSession();
                     }}
-                    className="flex items-center space-x-3 focus:outline-none"
+                    className="flex items-center space-x-3 focus:outline-none cursor-pointer"
                   >
                     {session.user.image ? (
                       <img 
@@ -294,7 +294,7 @@ export default function Navbar({session, refreshSession}) {
             ) : (
               <button
                 onClick={() => signIn()}
-                className="flex items-center space-x-2 bg-[#375171] hover:bg-[#2d4360] text-white px-4 py-3 rounded-lg text-lg"
+                className="flex items-center space-x-2 bg-[#375171] hover:bg-[#2d4360] text-white px-4 py-3 rounded-lg text-lg cursor-pointer"
               >
                 <CiLogin className="h-6 w-6" />
                 <span>{t.signIn}</span>
@@ -306,7 +306,7 @@ export default function Navbar({session, refreshSession}) {
           <div className="md:hidden flex items-center justify-end flex-1">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center space-x-1 bg-[#375171] text-white px-3 py-2 rounded-lg text-base"
+              className="flex items-center space-x-1 bg-[#375171] text-white px-3 py-2 rounded-lg text-base cursor-pointer"
             >
               <RxHamburgerMenu className="h-5 w-5" />
               <span>{t.menu}</span>
@@ -340,7 +340,7 @@ export default function Navbar({session, refreshSession}) {
             )}
             <button
               onClick={toggleLanguage}
-              className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg"
+              className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg cursor-pointer"
             >
               <AiOutlineGlobal className="h-6 w-6" />
               <span>{t.language}</span>
@@ -349,7 +349,7 @@ export default function Navbar({session, refreshSession}) {
             {session && (
               <button 
                 onClick={handleAddProperty}
-                className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg text-lg"
+                className="w-full flex items-center justify-center space-x-2 bg-green-600 text-white px-4 py-3 rounded-lg text-lg cursor-pointer"
               >
                 <IoMdAdd className="h-6 w-6" />
                 <span>{t.addProperty}</span>
@@ -360,7 +360,7 @@ export default function Navbar({session, refreshSession}) {
               <>
                 <button
                   onClick={() => router.push('/dashboard')}
-                  className="w-full flex items-center justify-center space-x-2 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg text-lg"
+                  className="w-full flex items-center justify-center space-x-2 bg-gray-200 text-gray-800 px-4 py-3 rounded-lg text-lg cursor-pointer"
                 >
                   <span>{t.dashboard || 'Dashboard'}</span>
                 </button>
@@ -369,7 +369,7 @@ export default function Navbar({session, refreshSession}) {
                     await signOut({ redirect: false });
                     window.location.href = "/";
                   }}
-                  className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg"
+                  className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg cursor-pointer"
                 >
                   <CiLogout className="h-6 w-6" />
                   <span>{t.signOut}</span>
@@ -378,7 +378,7 @@ export default function Navbar({session, refreshSession}) {
             ) : (
               <button
                 onClick={() => signIn()}
-                className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg"
+                className="w-full flex items-center justify-center space-x-2 bg-[#375171] text-white px-4 py-3 rounded-lg text-lg cursor-pointer"
               >
                 <CiLogin className="h-6 w-6" />
                 <span>{t.signIn}</span>

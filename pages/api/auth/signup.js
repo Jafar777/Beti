@@ -39,6 +39,8 @@ export default async function handler(req, res) {
       lastName,
       mobile,
       password: hashedPassword,
+      coins: 50  // Starting coins
+
     });
 
     await newUser.save();

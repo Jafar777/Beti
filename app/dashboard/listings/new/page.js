@@ -10,6 +10,7 @@ import { MdOutlineLocalPolice, MdOutlineDescription } from "react-icons/md";
 import { PiSolarRoofFill } from "react-icons/pi";
 import { SlCalender } from "react-icons/sl";
 import { BiSolidDoorOpen } from 'react-icons/bi';
+import { PiCoin } from "react-icons/pi";
 
 export default function NewListingPage() {
   const { data: session } = useSession();
@@ -693,7 +694,7 @@ export default function NewListingPage() {
             <button
               type="button"
               onClick={openCloudinaryWidget}
-              className="bg-[#375171] text-white py-3 px-6 rounded-lg mb-4 hover:bg-[#2d4360] transition-colors flex items-center"
+              className="bg-[#375171] text-white py-3 px-6 rounded-lg mb-4 hover:bg-[#2d4360] transition-colors flex items-center cursor-pointer"
             >
               <FaImages className="mr-2" />
               {t.uploadImages || 'Upload Images'}
@@ -711,7 +712,7 @@ export default function NewListingPage() {
                     <button
                       type="button"
                       onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors"
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600 transition-colors cursor-pointer"
                     >
                       <FaTrash className="text-sm" />
                     </button>
@@ -759,7 +760,7 @@ export default function NewListingPage() {
           <button
             type="submit"
             disabled={isSubmitting || formData.images.length === 0}
-            className="bg-[#375171] text-white py-3 px-8 rounded-lg hover:bg-[#2d4360] disabled:bg-gray-400 w-full md:w-auto text-lg font-medium transition-colors"
+            className="bg-[#375171] text-white py-3 px-8 rounded-lg hover:bg-[#2d4360] disabled:bg-gray-400 w-full md:w-auto text-lg font-medium transition-colors cursor-pointer"
           >
             {isSubmitting ? (t.processing || 'Processing...') : (t.addProperty || 'Add Property')}
           </button>

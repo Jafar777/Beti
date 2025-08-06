@@ -115,7 +115,7 @@ export default function PropertyCard({ property, showEdit = true, basePath = '/d
               Edit
             </Link>
             <button 
-              className="text-gray-500 hover:text-red-500"  
+              className="text-gray-500 hover:text-red-500 cursor-pointer"  
               onClick={(e) => handleDelete(e, property._id)}
             >
               Delete

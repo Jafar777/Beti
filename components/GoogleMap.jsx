@@ -1,6 +1,6 @@
 'use client';
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
-import { useState, useCallback, useRef, useEffect ,useMemo } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { FaChevronCircleRight, FaChevronCircleLeft } from "react-icons/fa";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -156,24 +156,24 @@ export default function GoogleMapComponent({ properties = [] }) {
     id: 'google-map-script',
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   });
-const markerIcon = useMemo(() => ({
-  path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
-  fillColor: "red",
-  fillOpacity: 1,
-  strokeColor: "#000",
-  strokeWeight: 1,
-  scale: 1.5,
-  anchor: { x: 12, y: 22 }
-}), []);
+  const markerIcon = useMemo(() => ({
+    path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
+    fillColor: "red",
+    fillOpacity: 1,
+    strokeColor: "#000",
+    strokeWeight: 1,
+    scale: 1.5,
+    anchor: { x: 12, y: 22 }
+  }), []);
   const onLoad = useCallback(function callback(map) {
     const bounds = new window.google.maps.LatLngBounds(
       new window.google.maps.LatLng(syriaBounds.south, syriaBounds.west),
       new window.google.maps.LatLng(syriaBounds.north, syriaBounds.east)
     );
-    
+
     map.panTo(governorates[0].center);
     map.setZoom(governorates[0].zoom);
-    
+
     map.setOptions({
       restriction: {
         latLngBounds: bounds,
@@ -181,7 +181,7 @@ const markerIcon = useMemo(() => ({
       },
       minZoom: 6
     });
-    
+
     setMap(map);
   }, []);
 
@@ -220,19 +220,15 @@ const markerIcon = useMemo(() => ({
       document.removeEventListener("touchstart", handleClickOutside);
     };
   }, []);
-    const handlePinClick = (property) => {
-    if (!session) {
-      const callbackUrl = `/properties/${property._id}`;
-      signIn(undefined, { callbackUrl });
-    } else {
+  const handlePinClick = (property) => {
       setSelectedProperty(property);
-    }
+    
   };
 
   return isLoaded ? (
     <div className="relative rounded-xl overflow-hidden shadow-lg">
       {isPanelOpen && (
-        <div 
+        <div
           ref={panelRef}
           className="absolute top-4 left-4 z-10 bg-white rounded-lg shadow-md p-3 w-[200px] max-w-[80vw] transition-all duration-300"
         >
@@ -244,11 +240,10 @@ const markerIcon = useMemo(() => ({
               <button
                 key={gov.id}
                 onClick={() => zoomToGovernorate(gov.id)}
-                className={`py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-                  activeGov === gov.id 
-                    ? 'bg-[#375171] text-white' 
+                className={`py-2 px-3 cursor-pointer rounded-md text-sm font-medium transition-colors ${activeGov === gov.id
+                    ? 'bg-[#375171] text-white'
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
-                }`}
+                  }`}
               >
                 {gov.name[language] || gov.name.en}
               </button>
@@ -256,14 +251,13 @@ const markerIcon = useMemo(() => ({
           </div>
         </div>
       )}
-      
-      <button 
+
+      <button
         onClick={togglePanel}
-        className={`absolute z-10 bg-[#375171] p-2 rounded-full shadow-md hover:bg-[#2d4360] panel-toggle-button ${
-          isPanelOpen 
-            ? 'top-1/2 left-[216px] transform -translate-y-1/2' 
+        className={`absolute z-10 bg-[#375171] p-2 rounded-full shadow-md hover:bg-[#2d4360] cursor-pointer panel-toggle-button ${isPanelOpen
+            ? 'top-1/2 left-[216px] transform -translate-y-1/2'
             : 'top-1/2 left-4 transform -translate-y-1/2'
-        }`}
+          }`}
         style={{ zIndex: 20 }}
       >
         {isPanelOpen ? (
@@ -272,7 +266,7 @@ const markerIcon = useMemo(() => ({
           <FaChevronCircleRight className="text-white text-xl" />
         )}
       </button>
-      
+
       <GoogleMap
         onLoad={onLoad}
         mapContainerStyle={{
@@ -292,30 +286,30 @@ const markerIcon = useMemo(() => ({
         }}
       >
         {properties.map(property => {
-          const position = property.pinLocation || { 
-            lat: property.latitude, 
-            lng: property.longitude 
+          const position = property.pinLocation || {
+            lat: property.latitude,
+            lng: property.longitude
           };
-          
+
           return (
-  <Marker
-  key={property._id}
-  position={position}
-  onClick={() => handlePinClick(property)}
-  icon={{
-    url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", // Classic red pin
-    scaledSize: new window.google.maps.Size(40, 40),
-    anchor: new window.google.maps.Point(20, 40),
-  }}
-/>
+            <Marker
+              key={property._id}
+              position={position}
+              onClick={() => handlePinClick(property)}
+              icon={{
+                url: "https://maps.google.com/mapfiles/ms/icons/red-dot.png", // Classic red pin
+                scaledSize: new window.google.maps.Size(40, 40),
+                anchor: new window.google.maps.Point(20, 40),
+              }}
+            />
           );
         })}
-        
+
         {selectedProperty && (
           <InfoWindow
-            position={selectedProperty.pinLocation || { 
-              lat: selectedProperty.latitude, 
-              lng: selectedProperty.longitude 
+            position={selectedProperty.pinLocation || {
+              lat: selectedProperty.latitude,
+              lng: selectedProperty.longitude
             }}
             onCloseClick={() => setSelectedProperty(null)}
           >
@@ -323,7 +317,7 @@ const markerIcon = useMemo(() => ({
               <h3 className="font-bold text-lg mb-1">{selectedProperty.title}</h3>
               <p className="text-gray-700">${selectedProperty.price?.toLocaleString()}</p>
               <p className="text-gray-600 mb-2">{selectedProperty.location}</p>
-              <a 
+              <a
                 href={`/properties/${selectedProperty._id}`}
                 className="text-blue-600 hover:underline"
               >
@@ -333,10 +327,10 @@ const markerIcon = useMemo(() => ({
           </InfoWindow>
         )}
       </GoogleMap>
-      
+
       <button
         onClick={toggleMapType}
-        className="absolute top-4 right-4 bg-[#375171] hover:bg-[#2d4360] text-white px-4 py-2 rounded-lg z-10"
+        className="absolute top-4 right-4 bg-[#375171] hover:bg-[#2d4360] text-white px-4 py-2 rounded-lg z-10 cursor-pointer"
       >
         {mapType === 'roadmap' ? t.satelliteView : t.mapView}
       </button>

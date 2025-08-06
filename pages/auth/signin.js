@@ -203,7 +203,7 @@ export default function AuthPage() {
                 <button
                   type="button"
                   onClick={() => router.push('/auth/forgot-password')}
-                  className="text-[#375171] hover:underline text-sm"
+                  className="text-[#375171] hover:underline text-sm cursor-pointer"
                 >
                   {t.forgotPassword || 'Forgot Password?'}
                 </button>
@@ -235,7 +235,7 @@ export default function AuthPage() {
               <button
                 type="button"
                 onClick={toggleFormMode}
-                className="text-[#375171] font-medium hover:underline"
+                className="text-[#375171] font-medium hover:underline cursor-pointer"
               >
                 {isSignUp ? t.signIn : t.signUp || 'Sign Up Now'}
               </button>

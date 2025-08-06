@@ -217,7 +217,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
         <button
           onClick={handleLike}
           disabled={isLiking}
-          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${isLiked
+          className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors cursor-pointer ${isLiked
               ? 'bg-red-50 text-red-600 border border-red-200'
               : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
             }`}
@@ -229,7 +229,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
 
         <button
           onClick={handleShare}
-          className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50"
+          className="flex items-center gap-2 px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-full hover:bg-gray-50 cursor-pointer"
         >
           <FaRegShareSquare />
           <span>{t.share || 'Share'}</span>
@@ -549,7 +549,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
 
               <button
                 onClick={handleWhatsApp}
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center"
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center cursor-pointer"
               >
                 <FaWhatsapp className="mr-2 text-xl" />
                 <span className='mr-2'>{t.whatsapp || 'Contact via WhatsApp'}</span>

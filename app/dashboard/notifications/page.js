@@ -107,7 +107,7 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <button
               onClick={markAllAsRead}
-              className="bg-[#375171] text-white px-4 py-2 rounded-lg"
+              className="bg-[#375171] text-white px-4 py-2 rounded-lg cursor-pointer"
             >
               {t.markAllRead || 'Mark all as read'}
             </button>
@@ -157,7 +157,7 @@ export default function NotificationsPage() {
                     </h3>
                     <button 
                       onClick={() => markAsRead(notification.id)}
-                      className="text-sm text-gray-500 hover:text-gray-700"
+                      className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer" 
                     >
                       {t.markAsRead || 'Mark as read'}
                     </button>

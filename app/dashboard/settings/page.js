@@ -229,7 +229,7 @@ export default function ProfileSettings() {
               type="button"
               onClick={() => fileInputRef.current.click()}
               disabled={isUploading}
-              className="bg-[#375171] text-white px-4 py-2 rounded-lg hover:bg-[#2d4360] disabled:bg-gray-400"
+              className="bg-[#375171] text-white px-4 py-2 rounded-lg hover:bg-[#2d4360] disabled:bg-gray-400 cursor-pointer"  
             >
               {t.changeImage || 'Change Image'}
             </button>
@@ -297,7 +297,7 @@ export default function ProfileSettings() {
           
           <button
             type="submit"
-            className="w-full bg-[#375171] text-white py-3 px-4 rounded-md hover:bg-[#2d4360] transition mt-4"
+            className="w-full bg-[#375171] text-white py-3 px-4 rounded-md hover:bg-[#2d4360] transition mt-4 cursor-pointer"
           >
             {t.updateProfile || 'Update Profile'}
           </button>

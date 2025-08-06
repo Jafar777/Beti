@@ -584,7 +584,7 @@ const handleVideoUpload = async (e) => {
           <button
             type="button"
             onClick={openCloudinaryWidget}
-            className="bg-[#375171] text-white py-2 px-4 rounded-md mb-4 hover:bg-[#2d4360]"
+            className="bg-[#375171] text-white py-2 px-4 rounded-md mb-4 hover:bg-[#2d4360] cursor-pointer"
           >
             {t.uploadImages || 'Upload Images'}
           </button>
@@ -601,7 +601,7 @@ const handleVideoUpload = async (e) => {
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-80 hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-full opacity-80 hover:opacity-100 transition-opacity cursor-pointer"
                   >
                     <FaTrash className="text-sm" />
                   </button>
@@ -623,7 +623,7 @@ const handleVideoUpload = async (e) => {
         <button
           type="submit"
           disabled={isSubmitting}
-          className="bg-[#375171] text-white py-3 px-6 rounded-md hover:bg-[#2d4360] disabled:bg-gray-400 w-full md:w-auto"
+          className="bg-[#375171] text-white py-3 px-6 rounded-md hover:bg-[#2d4360] disabled:bg-gray-400 w-full md:w-auto cursor-pointer"
         >
           {isSubmitting ? (t.updating || 'Updating...') : (t.updateProperty || 'Update Property')}
         </button>

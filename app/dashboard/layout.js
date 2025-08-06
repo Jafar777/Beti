@@ -13,6 +13,7 @@ import { FaHeart } from "react-icons/fa";
 import { IoChatboxEllipses } from "react-icons/io5";
 import { IoNotifications } from "react-icons/io5";
 import { signOut } from "next-auth/react";
+import { PiCoin, PiCoinFill } from "react-icons/pi";
 
 export default function DashboardLayout({ children }) {
   const { data: session, status } = useSession();
@@ -152,13 +153,13 @@ export default function DashboardLayout({ children }) {
 
               <li>
                 <Link
-                  href="/dashboard/subscription"
+                  href="/dashboard/coins"
                   className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-[#2d4360] transition ${
-                    isActive('/dashboard/subscription') ? 'bg-[#2d4360]' : ''
+                    isActive('/dashboard/coins') ? 'bg-[#2d4360]' : ''
                   }`}
                 >
-                  <RiVipDiamondFill className="text-xl" />
-                  <span>{t.subscription || 'Subscription'}</span>
+                  <PiCoinFill className="text-xl" />
+                  <span>{t.coins || 'Coins'}</span>
                 </Link>
               </li>
             </ul>
@@ -169,7 +170,7 @@ export default function DashboardLayout({ children }) {
               await signOut({ redirect: false });
               router.push('/');
             }}
-            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-600 transition mt-auto"
+            className="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-600 transition mt-auto cursor-pointer"
           >
             <CiLogout className="text-xl" />
             <span>{t.signOut || 'Sign Out'}</span>
