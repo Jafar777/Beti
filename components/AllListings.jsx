@@ -6,10 +6,9 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useSession } from "next-auth/react";
 import { FaFilter, FaDollarSign, FaBed, FaBuilding, FaCheckCircle, FaSync } from "react-icons/fa";
 
-export default function AllListings() {
-  const [properties, setProperties] = useState([]);
+export default function AllListings({ properties }) {
   const [filteredProperties, setFilteredProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
+
   const [filters, setFilters] = useState({
     minPrice: '',
     maxPrice: '',
@@ -22,29 +21,7 @@ export default function AllListings() {
   const { data: session } = useSession();
   const t = translations[language] || {};
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const res = await fetch('/api/properties');
-        if (!res.ok) {
-          console.error('API Error:', res.status, await res.text());
-          return;
-        }
-        const data = await res.json();
-        if (!Array.isArray(data)) {
-          console.error('Expected array but got:', data);
-          return;
-        }
-        setProperties(data);
-        setFilteredProperties(data);
-      } catch (error) {
-        console.error('Failed to fetch properties:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProperties();
-  }, []);
+ 
 
   // Apply filters when filters change
   useEffect(() => {
@@ -91,13 +68,6 @@ export default function AllListings() {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-12 h-12 border-4 border-[#375171] border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto p-4 max-w-6xl">
@@ -128,7 +98,7 @@ export default function AllListings() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <div>
-            <label className="block text-gray-700 mb-2 font-medium flex items-center">
+            <label className=" text-gray-700 mb-2 font-medium flex items-center">
               <FaDollarSign className="mr-2 text-blue-600" />
               {t.minPrice || 'Min Price'}
             </label>
@@ -143,7 +113,7 @@ export default function AllListings() {
           </div>
           
           <div>
-            <label className="block text-gray-700 mb-2 font-medium flex items-center">
+            <label className=" text-gray-700 mb-2 font-medium flex items-center">
               <FaDollarSign className="mr-2 text-blue-600" />
               {t.maxPrice || 'Max Price'}
             </label>
@@ -158,7 +128,7 @@ export default function AllListings() {
           </div>
           
           <div>
-            <label className="block text-gray-700 mb-2 font-medium flex items-center">
+            <label className=" text-gray-700 mb-2 font-medium flex items-center">
               <FaBed className="mr-2 text-blue-600" />
               {t.bedrooms || 'Bedrooms'}
             </label>
@@ -178,7 +148,7 @@ export default function AllListings() {
           </div>
           
           <div>
-            <label className="block text-gray-700 mb-2 font-medium flex items-center">
+            <label className=" text-gray-700 mb-2 font-medium flex items-center">
               <FaBuilding className="mr-2 text-blue-600" />
               {t.propertyType || 'Property Type'}
             </label>

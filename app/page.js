@@ -6,28 +6,16 @@ import GoogleMapComponent from "@/components/GoogleMap";
 import FeaturedListings from "@/components/FeaturedListings";
 import AllListings from "@/components/AllListings";
 import { useState, useEffect } from 'react';
+import { useProperties } from '@/context/PropertiesContext'; // Add this
+
 
 export default function Home() {
   const { data: session } = useSession();
   const { language, translations } = useLanguage();
   const t = translations[language];
-  const [properties, setProperties] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+    const { properties, loading } = useProperties(); // Get properties from context
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        const res = await fetch('/api/properties');
-        const data = await res.json();
-        setProperties(data);
-      } catch (error) {
-        console.error('Failed to fetch properties:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProperties();
-  }, []);
 
   return (
     <div className="container mx-auto p-4">
@@ -39,12 +27,12 @@ export default function Home() {
       </div>
       
       {/* Featured Listings Section */}
-      <FeaturedListings />
+      <FeaturedListings  properties={properties}  />
       
       {/* All Listings Section */}
       <div>
         <h1 className="text-[#375171] text-3xl font-bold mb-6 text-center">{t.list}</h1>
-        <AllListings />
+        <AllListings  properties={properties}  />
       </div>
     </div>
   );

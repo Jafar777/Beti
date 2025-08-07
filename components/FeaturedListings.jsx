@@ -4,52 +4,28 @@ import { useLanguage } from '@/context/LanguageContext';
 import Link from 'next/link';
 import { FaStar } from 'react-icons/fa';
 
-const FeaturedListings = () => {
+const FeaturedListings = ({properties}) => {
   const { language, translations } = useLanguage();
   const t = translations[language] || {};
-  const [featuredProperties, setFeaturedProperties] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [properties, setProperties] = useState([]);
-
-  useEffect(() => {
-    const fetchProperties = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch('/api/properties');
-        const data = await res.json();
-        setProperties(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Failed to fetch properties:', error);
-        setLoading(false);
-      }
-    };
-    
-    fetchProperties();
-  }, []);
-
-  useEffect(() => {
-    // Filter properties to only show featured ones
-    const featured = properties.filter(property => property.isFeatured);
-    setFeaturedProperties(featured.slice(0, 4)); // Only show max 4 featured properties
-  }, [properties]);
 
 
-  if (loading) {
-    return (
-      <div className="my-12 flex justify-center">
-        <div className="w-12 h-12 border-4 border-[#375171] border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
 
-  if (!loading && featuredProperties.length === 0) {
+  // Filter featured properties
+  const featuredProperties = properties
+    .filter(property => property.isFeatured)
+    .slice(0, 4);
+
+
+
+
+ if (featuredProperties.length === 0) {
     return (
       <div className="my-12 text-center">
         <p>{t.noFeaturedListings || 'No featured listings available'}</p>
       </div>
     );
   }
+
 
   return (
     <div className="my-12">
