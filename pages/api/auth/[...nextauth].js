@@ -18,7 +18,6 @@ export const authOptions = {
       async authorize(credentials) {
         try {
           await dbConnect();
-          
           const trimmedMobile = credentials.mobile.trim();
           console.log(`Attempting login for mobile: ${trimmedMobile}`);
           
@@ -48,7 +47,7 @@ export const authOptions = {
           return { 
             id: user._id.toString(),
             name: `${user.firstName} ${user.lastName}`,
-            email: user.mobile,
+            mobile: user.mobile,
             image: user.image || null,
             likedProperties: likedProperties.map(id => id.toString())
           }
@@ -80,26 +79,34 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.user = {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          likedProperties: user.likedProperties
-        };
+        token.mobile = user.mobile;
+        token.name = user.name;
+        token.image = user.image;
       }
       return token;
     },
-    async session({ session, token }) {
-      session.user.id = token.id;
-      session.user.firstName = token.user?.name?.split(' ')[0] || '';
-      session.user.lastName = token.user?.name?.split(' ')[1] || '';
+   async session({ session, token }) {
+      // Fetch fresh user data from DB
+      await dbConnect();
+      const dbUser = await User.findById(token.id)
+        .select('firstName lastName mobile image likedProperties');
       
-      // FIX: Ensure likedProperties is always an array
-      session.user.likedProperties = token.user?.likedProperties || [];
+      if (!dbUser) return session;
+      
+      // Populate session with fresh data
+      session.user = {
+        id: dbUser._id.toString(),
+        firstName: dbUser.firstName,
+        lastName: dbUser.lastName,
+        mobile: dbUser.mobile,
+        image: dbUser.image,
+        name: `${dbUser.firstName} ${dbUser.lastName}`,
+        likedProperties: dbUser.likedProperties.map(id => id.toString())
+      };
       
       return session;
     }
+  
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === 'development',
