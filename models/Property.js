@@ -15,6 +15,18 @@ const propertySchema = new mongoose.Schema({
     required: true
   },
   isFeatured: { type: Boolean, default: false },
+   propertyStatus: {
+    type: String,
+    enum: ['demolished', 'unbuilt', 'intact'],
+    required: true,
+    default: 'intact'
+  },
+  decorationType: {
+    type: String,
+    enum: ['bare_bones', 'old_coating', 'normal_coating', 'deluxe_coating', 'super_deluxe_coating'],
+    required: true,
+    default: 'normal_coating'
+  },
   createdAt: { type: Date, default: Date.now },
   latitude: { type: Number, required: true },
   longitude: { type: Number, required: true },

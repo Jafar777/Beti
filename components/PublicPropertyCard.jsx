@@ -74,7 +74,7 @@ export default function PublicPropertyCard({ property }) {
         </div>
 
         <div className="flex items-center text-gray-600 mb-3">
-          <FaMapMarkerAlt className="mr-1 text-sm text-[#375171]" />
+          <FaMapMarkerAlt className="mr-1 ml-1 text-sm text-[#375171]" />
           <span className="text-sm line-clamp-1">
             {getLocationName(property.district, 'district', language)}
           </span>
@@ -83,29 +83,29 @@ export default function PublicPropertyCard({ property }) {
         {/* Property features */}
         <div className="flex justify-between border-t border-gray-100 pt-3">
           <div className="flex items-center text-gray-600">
-            <FaBed className="mr-1 text-[#375171]" />
-            <span className="text-sm mr-2">
+            <FaBed className="mr-1 ml-1 text-[#375171]" />
+            <span className="text-sm mr-2 ml-2">
              {t.bedrooms} {property.bedrooms}
             </span>
           </div>
 
           <div className="flex items-center text-gray-600">
-            <FaBath className="mr-1 text-[#375171]" />
-            <span className="text-sm mr-2">
+            <FaBath className="mr-1 ml-1 text-[#375171]" />
+            <span className="text-sm mr-2 ml-2">
              {t.bathrooms} {property.bathrooms} 
             </span>
           </div>
 
           <div className="flex items-center text-gray-600">
-            <FaRulerCombined className="mr-1 text-[#375171]" />
-            <span className="text-sm mr-2">
+            <FaRulerCombined className="mr-1 ml-1 text-[#375171]" />
+            <span className="text-sm mr-2 ml-2">
               {property.area} {t.meter}
             </span>
           </div>
         </div>
 
         {/* Property type and likes */}
-        <div className="flex justify-between mt-3 pt-3 border-t border-gray-100">
+        <div className="flex justify-between mt-3 ml-3 pt-3 border-t border-gray-100">
           <span className="inline-block bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-medium">
             {property.propertyType === 'apartment' ? t.apartment || 'Apartment' :
               property.propertyType === 'villa' ? t.villa || 'Villa' :

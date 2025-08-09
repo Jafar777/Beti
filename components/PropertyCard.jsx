@@ -1,11 +1,13 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaBed, FaBath, FaRulerCombined } from 'react-icons/fa';
+import { FaBed, FaBath, FaRulerCombined, FaMapMarkerAlt, FaEdit, FaTrash } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
+import { useLanguage } from "@/context/LanguageContext";
 
 export default function PropertyCard({ property, showEdit = true, basePath = '/dashboard/listings', onCardClick ,onDelete}) {
   const router = useRouter();
-  
+    const { language, translations } = useLanguage();
+    const t = translations[language] || {};
   // Determine status text and class
   const statusText = property.status || 'active';
   let statusClass = '';
@@ -53,72 +55,80 @@ export default function PropertyCard({ property, showEdit = true, basePath = '/d
     <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-lg transition-shadow duration-300 cursor-pointer"
       onClick={() => onCardClick && onCardClick(property)}
     >
-      {/* Property Image */}
-      {property.images && property.images.length > 0 ? (
-        <div className="relative h-48 w-full">
-          <Image 
+        {/* Image with contract tag */}
+      <div className="relative h-60 w-full">
+        {property.images && property.images.length > 0 ? (
+          <Image
             src={property.images[0]} 
-            alt={property.title} 
+            alt={property.title}
             fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className="object-cover"
-            placeholder="blur"
-            blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=="
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-        </div>
-      ) : (
-        <div className="bg-gray-200 border-2 border-dashed rounded-t-lg w-full h-48 flex items-center justify-center">
-          <span className="text-gray-500">No Image</span>
-        </div>
-      )}
-      
-      {/* Property Details */}
+        ):(
+          <div className="bg-gray-200 border-2 border-dashed w-full h-full flex items-center justify-center">
+            <span className="text-gray-500">No Image</span>
+          </div>
+        )}
+      </div>
+
+      {/* Property details */}
       <div className="p-4">
-        <div className="mb-2">
-          <span className={`inline-block px-2 py-1 text-xs rounded-full ${statusClass}`}>
-            {statusText}
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-lg font-bold text-gray-800 line-clamp-1">
+            {property.title}
+          </h3>
+          <span className="text-lg font-bold text-[#375171] whitespace-nowrap">
+            ${property.price?.toLocaleString()}
           </span>
         </div>
-        <h3 className="text-xl font-bold mb-1 truncate">{property.title}</h3>
-        <p className="text-lg font-semibold text-[#375171] mb-3">${property.price.toLocaleString()}</p>
-        
-        {/* Property Features */}
-        <div className="flex items-center text-gray-600 text-sm mb-3">
-          <span className="mr-3 flex items-center">
+
+        <div className="flex items-center text-gray-600 mb-3">
+          <FaMapMarkerAlt className="mr-1 text-sm text-[#375171]" />
+          <span className="text-sm line-clamp-1">
+            {property.location}
+          </span>
+        </div>
+
+        {/* Property features */}
+        <div className="flex justify-between border-t border-gray-100 pt-3">
+          <div className="flex items-center text-gray-600">
             <FaBed className="mr-1 text-[#375171]" />
-            {property.bedrooms} {property.bedrooms === 1 ? 'Bed' : 'Beds'}
-          </span>
-          <span className="mr-3 flex items-center">
+            <span className="text-sm mr-2">
+              {property.bedrooms}
+            </span>
+          </div>
+
+          <div className="flex items-center text-gray-600">
             <FaBath className="mr-1 text-[#375171]" />
-            {property.bathrooms} {property.bathrooms === 1 ? 'Bath' : 'Baths'}
-          </span>
-          <span className="flex items-center">
+            <span className="text-sm mr-2">
+              {property.bathrooms} 
+            </span>
+          </div>
+
+          <div className="flex items-center text-gray-600">
             <FaRulerCombined className="mr-1 text-[#375171]" />
-            {property.area} m²
-          </span>
+            <span className="text-sm mr-2">
+              {property.area} m²
+            </span>
+          </div>
         </div>
-        
-        {/* Location */}
-        <p className="text-gray-600 text-sm mb-3 truncate">
-          <i className="fa fa-map-marker-alt mr-1 text-[#375171]"></i>
-          {property.location}
-        </p>
-        
-        {/* Actions */}
+
+        {/* Edit/Delete Buttons */}
         {showEdit && (
-          <div className="flex space-x-2 pt-3 border-t border-gray-100">
+          <div className="flex justify-between mt-3 pt-3 border-t border-gray-100">
             <Link 
               href={`${basePath}/${property._id}`}
-              className="text-[#375171] border border-[#375171] px-3 py-1 rounded hover:bg-[#375171] hover:text-white transition-colors"
+              className="flex items-center text-[#375171] hover:text-blue-700 cursor-pointer"
               onClick={(e) => e.stopPropagation()}
             >
-              Edit
+              <FaEdit className="mr-1 ml-1" /> {t.edit || 'Edit'}
             </Link>
             <button 
-              className="text-gray-500 hover:text-red-500 cursor-pointer"  
+              className="flex items-center text-gray-500 hover:text-red-500 cursor-pointer"
               onClick={(e) => handleDelete(e, property._id)}
             >
-              Delete
+              <FaTrash className="mr-1 ml-1" /> {t.delete || 'Delete'}
             </button>
           </div>
         )}

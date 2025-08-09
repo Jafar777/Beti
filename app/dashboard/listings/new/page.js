@@ -11,19 +11,24 @@ import { PiSolarRoofFill } from "react-icons/pi";
 import { SlCalender } from "react-icons/sl";
 import { BiSolidDoorOpen } from 'react-icons/bi';
 import { PiCoin } from "react-icons/pi";
+import { IoIosVideocam } from "react-icons/io";
 
 export default function NewListingPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const { language, translations } = useLanguage();
   const t = translations[language] || {};
-  
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     price: '',
+    rentPeriod: 'monthly', // Added rent period field
     location: '',
     propertyType: 'apartment',
+    propertyStatus: 'intact',
+    decorationType: 'normal_coating',
+    includeVideo: false,
     bedrooms: 1,
     bathrooms: 1,
     area: '',
@@ -46,7 +51,7 @@ export default function NewListingPage() {
     rooftopOwnership: 'shared',
     video: '',
   });
-  
+
   const [locationsData, setLocationsData] = useState({ governorates: [] });
   const [loadingLocations, setLoadingLocations] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -54,12 +59,18 @@ export default function NewListingPage() {
   const cloudinaryRef = useRef();
   const widgetRef = useRef();
 
-  const availableCities = formData.governorate 
-    ? getGovernorate(formData.governorate)?.cities || []
+  const selectedGovernorate = locationsData.governorates.find(
+    gov => gov.id === formData.governorate
+  );
+  const availableCities = selectedGovernorate
+    ? selectedGovernorate.cities
     : [];
-    
-  const availableDistricts = formData.city 
-    ? getCity(formData.city)?.districts || []
+
+  const selectedCity = availableCities.find(
+    city => city.id === formData.city
+  );
+  const availableDistricts = selectedCity
+    ? selectedCity.districts
     : [];
 
   const handleChange = (e) => {
@@ -79,7 +90,7 @@ export default function NewListingPage() {
         setLoadingLocations(false);
       }
     };
-    
+
     fetchLocations();
   }, []);
 
@@ -88,10 +99,10 @@ export default function NewListingPage() {
       ...prev,
       latitude: position.lat,
       longitude: position.lng,
-      pinLocation: position 
+      pinLocation: position
     }));
   };
-  
+
   const removeImage = (index) => {
     setFormData(prev => {
       const newImages = [...prev.images];
@@ -99,7 +110,7 @@ export default function NewListingPage() {
       return { ...prev, images: newImages };
     });
   };
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -108,6 +119,7 @@ export default function NewListingPage() {
     try {
       const propertyData = {
         ...formData,
+        area: Number(formData.area),
         price: Number(formData.price),
         bedrooms: Number(formData.bedrooms),
         bathrooms: Number(formData.bathrooms),
@@ -120,8 +132,18 @@ export default function NewListingPage() {
         district: formData.district,
         rooftopOwnership: String(formData.rooftopOwnership),
         privateParking: formData.privateParking === 'yes',
-        violations: formData.violations === 'yes'
+        violations: formData.violations === 'yes',
+        includeVideo: formData.includeVideo,
+        // Include rent period only for rental properties
+        ...(formData.contractType === 'rent' && { rentPeriod: formData.rentPeriod })
       };
+
+      if (formData.includeVideo) {
+        if (session.user.coins < 10) {
+          setError(t.insufficientCoins || 'You need at least 10 coins to include a video');
+          return;
+        }
+      }
 
       if (!formData.governorate || !formData.city || !formData.district) {
         setError(t.locationRequired || 'Please select governorate, city, and district');
@@ -130,20 +152,31 @@ export default function NewListingPage() {
 
       const response = await fetch('/api/properties/create', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${session.accessToken}`
         },
         credentials: 'include',
         body: JSON.stringify(propertyData)
       });
-      
+
       const responseData = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(responseData.error || 'Failed to create listing');
       }
-      
+
+      if (formData.includeVideo) {
+        await fetch('/api/user/deduct-coins', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.accessToken}`
+          },
+          body: JSON.stringify({ amount: 10 })
+        });
+      }
+
       router.push('/dashboard/listings');
     } catch (err) {
       console.error("Submission error:", err);
@@ -155,7 +188,7 @@ export default function NewListingPage() {
 
   const openCloudinaryWidget = () => {
     cloudinaryRef.current = window.cloudinary;
-    
+
     widgetRef.current = cloudinaryRef.current.createUploadWidget(
       {
         cloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
@@ -167,7 +200,7 @@ export default function NewListingPage() {
         clientAllowedFormats: ['jpg', 'png', 'jpeg', 'webp'],
         maxImageFileSize: 5000000,
         cropping: true,
-        croppingAspectRatio: 16/9,
+        croppingAspectRatio: 16 / 9,
         showSkipCropButton: false
       },
       (error, result) => {
@@ -179,26 +212,26 @@ export default function NewListingPage() {
         }
       }
     );
-    
+
     widgetRef.current.open();
   };
-  
+
   const handleVideoUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
-      
+
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`,
         { method: 'POST', body: formData }
       );
-      
+
       const data = await response.json();
       setFormData(prev => ({ ...prev, video: data.secure_url }));
     } catch (error) {
@@ -220,24 +253,24 @@ export default function NewListingPage() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <h1 className="text-3xl font-bold text-[#375171] mb-8 flex items-center">
-        <FaHome className="mr-3 text-blue-600" />
+        <FaHome className="mr-3 ml-3 text-blue-600" />
         {t.addProperty || 'Add New Property'}
       </h1>
-      
+
       {error && (
         <div className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg border border-red-300">
           {error}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg overflow-hidden">
         {/* Property Information Section */}
         <div className="p-6 border-b border-gray-200 bg-blue-50">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-6">
-            <FaHome className="text-blue-600 mr-3" />
+            <FaHome className="text-blue-600 mr-3 ml-3" />
             {t.propertyInformation || 'Property Information'}
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
@@ -269,20 +302,45 @@ export default function NewListingPage() {
                 <option value="mortgage">{t.mortgage}</option>
               </select>
             </div>
-            
-            <div>
-              <label className="block text-gray-700 mb-2 font-medium">
-                {t.price || 'Price'} (USD) *
-              </label>
-              <input
-                type="number"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                required
-                min="1"
-              />
+
+            <div className={formData.contractType === 'rent' ? 'col-span-2 grid grid-cols-2 gap-6' : ''}>
+              <div>
+                <label className="block text-gray-700 mb-2 font-medium">
+                  {formData.contractType === 'rent' 
+                    ? t.rentPrice || 'Rent Price (USD)' 
+                    : t.price || 'Price (USD)'} *
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  required
+                  min="0"
+                />
+              </div>
+              
+              {/* Rent period field only shown for rental properties */}
+              {formData.contractType === 'rent' && (
+                <div>
+                  <label className="block text-gray-700 mb-2 font-medium">
+                    {t.rentPeriod || 'Rent Period'} *
+                  </label>
+                  <select
+                    name="rentPeriod"
+                    value={formData.rentPeriod}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  >
+                    <option value="daily">{t.daily || 'Daily'}</option>
+                    <option value="weekly">{t.weekly || 'Weekly'}</option>
+                    <option value="monthly">{t.monthly || 'Monthly'}</option>
+                    <option value="yearly">{t.yearly || 'Yearly'}</option>
+                  </select>
+                </div>
+              )}
             </div>
 
             <div>
@@ -316,7 +374,43 @@ export default function NewListingPage() {
             
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <FaBed className="inline mr-2 text-blue-600" />
+                {t.propertyStatus || 'Property Status'} *
+              </label>
+              <select
+                name="propertyStatus"
+                value={formData.propertyStatus}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="demolished">{t.demolished || 'مهدوم انقاض'}</option>
+                <option value="unbuilt">{t.unbuilt || 'غير مبني'}</option>
+                <option value="intact">{t.intact || 'سليم'}</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-gray-700 mb-2 font-medium">
+                {t.decorationType || 'Decoration Type'} *
+              </label>
+              <select
+                name="decorationType"
+                value={formData.decorationType}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                required
+              >
+                <option value="bare_bones">{t.bare_bones || 'غير مكسي عالعضم'}</option>
+                <option value="old_coating">{t.old_coating || 'اكساء قديم'}</option>
+                <option value="normal_coating">{t.normal_coating || 'اكساء عادي'}</option>
+                <option value="deluxe_coating">{t.deluxe_coating || 'اكساء ديلوكس'}</option>
+                <option value="super_deluxe_coating">{t.super_deluxe_coating || 'اكساء غالي سوبر ديلوكس'}</option>
+              </select>
+            </div>
+ 
+            <div>
+              <label className="block text-gray-700 mb-2 font-medium">
+                <FaBed className="inline mr-2 ml-2 text-blue-600" />
                 {t.bedrooms || 'Bedrooms'} *
               </label>
               <input
@@ -324,15 +418,15 @@ export default function NewListingPage() {
                 name="bedrooms"
                 value={formData.bedrooms}
                 onChange={handleChange}
-                min="1"
+                min="0"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <FaBath className="inline mr-2 text-blue-600" />
+                <FaBath className="inline mr-2 ml-2 text-blue-600" />
                 {t.bathrooms || 'Bathrooms'} *
               </label>
               <input
@@ -340,19 +434,19 @@ export default function NewListingPage() {
                 name="bathrooms"
                 value={formData.bathrooms}
                 onChange={handleChange}
-                min="1"
+                min="0"
                 className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <FaRulerCombined className="inline mr-2 text-blue-600" />
+                <FaRulerCombined className="inline mr-2 ml-2 text-blue-600" />
                 {t.area || 'Area (m²)'} *
               </label>
               <input
-                type="text"
+                type="number"
                 name="area"
                 value={formData.area}
                 onChange={handleChange}
@@ -363,7 +457,7 @@ export default function NewListingPage() {
 
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <SlCalender className="inline mr-2 text-blue-600" />
+                <SlCalender className="inline mr-2 ml-2 text-blue-600" />
                 {t.propertyAge || 'Property Age'} *
               </label>
               <input
@@ -381,10 +475,10 @@ export default function NewListingPage() {
         {/* Ownership Details Section */}
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-6">
-            <TbContract className="text-blue-600 mr-3" />
+            <TbContract className="text-blue-600 mr-3 ml-3" />
             {t.ownershipDetails || 'Ownership Details'}
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
@@ -407,10 +501,10 @@ export default function NewListingPage() {
                 <option value="lineage_endowment">{t.lineage_endowment}</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <MdOutlineLocalPolice className="inline mr-2 text-blue-600" />
+                <MdOutlineLocalPolice className="inline mr-2 ml-2 text-blue-600" />
                 {t.violations} *
               </label>
               <select
@@ -424,10 +518,10 @@ export default function NewListingPage() {
                 <option value="yes">{t.yes}</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <BiSolidDoorOpen className="inline mr-2 text-blue-600" />
+                <BiSolidDoorOpen className="inline mr-2 ml-2 text-blue-600" />
                 {t.entrances || 'Number of Entrances'} *
               </label>
               <input
@@ -446,14 +540,14 @@ export default function NewListingPage() {
         {/* Amenities Section */}
         <div className="p-6 border-b border-gray-200 bg-blue-50">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-6">
-            <FaPlug className="text-blue-600 mr-3" />
+            <FaPlug className="text-blue-600 mr-3 ml-3" />
             {t.amenities || 'Amenities'}
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <TbAirConditioning className="inline mr-2 text-blue-600" />
+                <TbAirConditioning className="inline mr-2 ml-2 text-blue-600" />
                 {t.airConditioning || 'Air Conditioning'} *
               </label>
               <select
@@ -475,7 +569,7 @@ export default function NewListingPage() {
 
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <FaPlug className="inline mr-2 text-blue-600" />
+                <FaPlug className="inline mr-2 ml-2 text-blue-600" />
                 {t.electricity || 'Electricity'} *
               </label>
               <select
@@ -496,7 +590,7 @@ export default function NewListingPage() {
 
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <FaWater className="inline mr-2 text-blue-600" />
+                <FaWater className="inline mr-2 ml-2 text-blue-600" />
                 {t.water || 'Water'} *
               </label>
               <select
@@ -514,7 +608,7 @@ export default function NewListingPage() {
 
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <PiSolarRoofFill className="inline mr-2 text-blue-600" />
+                <PiSolarRoofFill className="inline mr-2 ml-2 text-blue-600" />
                 {t.rooftopOwnership || 'Rooftop Ownership'} *
               </label>
               <select
@@ -531,7 +625,7 @@ export default function NewListingPage() {
 
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
-                <TbParking className="inline mr-2 text-blue-600" />
+                <TbParking className="inline mr-2 ml-2 text-blue-600" />
                 {t.privateParking} *
               </label>
               <select
@@ -551,7 +645,7 @@ export default function NewListingPage() {
         {/* Description Section */}
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-6">
-            <MdOutlineDescription className="text-blue-600 mr-3" />
+            <MdOutlineDescription className="text-blue-600 mr-3 ml-3" />
             {t.description || 'Description'} *
           </h2>
           <textarea
@@ -567,10 +661,10 @@ export default function NewListingPage() {
         {/* Location Section */}
         <div className="p-6 border-b border-gray-200 bg-blue-50">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-6">
-            <FaMapMarkerAlt className="text-blue-600 mr-3" />
+            <FaMapMarkerAlt className="text-blue-600 mr-3 ml-3" />
             {t.locationDetails || 'Location Details'}
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
@@ -579,8 +673,8 @@ export default function NewListingPage() {
               <select
                 name="governorate"
                 value={formData.governorate}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
+                onChange={(e) => setFormData({
+                  ...formData,
                   governorate: e.target.value,
                   city: '',
                   district: ''
@@ -596,7 +690,7 @@ export default function NewListingPage() {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
                 {t.city} *
@@ -604,8 +698,8 @@ export default function NewListingPage() {
               <select
                 name="city"
                 value={formData.city}
-                onChange={(e) => setFormData({ 
-                  ...formData, 
+                onChange={(e) => setFormData({
+                  ...formData,
                   city: e.target.value,
                   district: ''
                 })}
@@ -621,7 +715,7 @@ export default function NewListingPage() {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
                 {t.district} *
@@ -642,7 +736,7 @@ export default function NewListingPage() {
                 ))}
               </select>
             </div>
-            
+
             <div>
               <label className="block text-gray-700 mb-2 font-medium">
                 {t.location || 'Exact Address'} *
@@ -657,20 +751,20 @@ export default function NewListingPage() {
               />
             </div>
           </div>
-          
+
           <div className="mb-6">
             <label className="block text-gray-700 mb-2 font-medium">
               {t.selectLocation || 'Select Exact Location on Map'} *
             </label>
             <div className="h-96 rounded-lg overflow-hidden border border-gray-300">
-              <LocationPickerMap 
-                onLocationSelected={handleLocationSelect} 
+              <LocationPickerMap
+                onLocationSelected={handleLocationSelect}
                 initialPosition={{ lat: formData.latitude, lng: formData.longitude }}
               />
             </div>
             <div className="mt-3 text-gray-600 flex items-center">
-              <FaMapMarkerAlt className="mr-2 text-blue-500" />
-              {t.coordinates || 'Coordinates'}: 
+              <FaMapMarkerAlt className="mr-2 ml-2 text-blue-500" />
+              {t.coordinates || 'Coordinates'}:
               {formData.latitude.toFixed(6)}, {formData.longitude.toFixed(6)}
             </div>
           </div>
@@ -679,10 +773,10 @@ export default function NewListingPage() {
         {/* Media Section */}
         <div className="p-6">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-6">
-            <FaImages className="text-blue-600 mr-3" />
+            <FaImages className="text-blue-600 mr-3 ml-3" />
             {t.media || 'Media'}
           </h2>
-          
+
           <div className="mb-8">
             <label className="block text-gray-700 mb-3 font-medium">
               {t.propertyImages || 'Property Images'} *
@@ -690,23 +784,23 @@ export default function NewListingPage() {
                 ({t.max10Images || 'Max 10 images'})
               </span>
             </label>
-            
+
             <button
               type="button"
               onClick={openCloudinaryWidget}
               className="bg-[#375171] text-white py-3 px-6 rounded-lg mb-4 hover:bg-[#2d4360] transition-colors flex items-center cursor-pointer"
             >
-              <FaImages className="mr-2" />
+              <FaImages className="mr-2 ml-2" />
               {t.uploadImages || 'Upload Images'}
             </button>
-            
+
             {formData.images.length > 0 ? (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mt-4">
                 {formData.images.map((url, index) => (
                   <div key={`image-${index}`} className="relative group border rounded-lg overflow-hidden shadow-sm">
-                    <img 
-                      src={url} 
-                      alt={`Property ${index + 1}`} 
+                    <img
+                      src={url}
+                      alt={`Property ${index + 1}`}
                       className="w-full h-40 object-cover"
                     />
                     <button
@@ -730,29 +824,76 @@ export default function NewListingPage() {
               </div>
             )}
           </div>
-          
-          {(session?.user?.subscription?.plan === 'golden' || session?.user?.subscription?.plan === 'diamond') && (
-            <div>
-              <label className="block text-gray-700 mb-3 font-medium">
-                {t.video || 'Property Video'}
-              </label>
-              <input
-                type="file"
-                accept="video/*"
-                onChange={handleVideoUpload}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg mb-3"
-              />
-              {formData.video && (
-                <div className="mt-4">
-                  <video 
-                    src={formData.video} 
-                    controls 
-                    className="max-w-full max-h-64 rounded-lg"
-                  />
-                </div>
-              )}
-            </div>
+
+          {/* Video Section - Available to all users with coins */}
+          {/* Video Section - Available to all users with coins */}
+<div>
+  <label className="flex items-center mb-3">
+    <input
+      type="checkbox"
+      name="includeVideo"
+      checked={formData.includeVideo}
+        onChange={(e) => setFormData(prev => ({
+          ...prev,
+          includeVideo: e.target.checked
+        }))}
+        className="mr-2 h-5 w-5 text-blue-600 rounded"
+      />
+      <span className="font-medium">
+        {t.includeVideo || 'Include Video'} - 
+        <span className="text-amber-600 font-bold ml-1">
+          10 {t.coins || 'coins'}
+        </span>
+        {session?.user?.coins >= 10 ? (
+          <span className="text-green-600 ml-2">
+            ({session.user.coins} {t.coinsAvailable || 'coins available'})
+          </span>
+        ) : (
+          <span className="text-red-600 ml-2">
+            ({t.insufficientCoins || 'Insufficient coins'})
+          </span>
+        )}
+      </span>
+    </label>
+
+    {formData.includeVideo && (
+      <>
+        {/* Updated video upload UI to match image button */}
+        <div className="flex items-center gap-4 mb-4">
+          <button
+            type="button"
+            onClick={() => document.getElementById('videoUpload').click()}
+            className="bg-[#375171] text-white py-3 px-6 rounded-lg hover:bg-[#2d4360] transition-colors flex items-center cursor-pointer"
+          >
+            <IoIosVideocam className="mr-2 ml-2 text-lg" />
+            {t.uploadVideo || 'Upload Video'}
+          </button>
+          <input
+            id="videoUpload"
+            type="file"
+            accept="video/*"
+            onChange={handleVideoUpload}
+            className="hidden"
+          />
+          {formData.video && (
+            <span className="text-green-600 flex items-center">
+              <FaCheck className="mr-1" /> Video uploaded
+            </span>
           )}
+        </div>
+        
+        {formData.video && (
+          <div className="mt-4">
+            <video
+              src={formData.video}
+              controls
+              className="max-w-full max-h-64 rounded-lg"
+            />
+          </div>
+        )}
+      </>
+    )}
+</div>
         </div>
 
         {/* Submit Button */}
@@ -766,7 +907,7 @@ export default function NewListingPage() {
           </button>
         </div>
       </form>
-      
+
       {/* Cloudinary script */}
       <script src="https://upload-widget.cloudinary.com/global/all.js" async />
     </div>

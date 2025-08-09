@@ -1,13 +1,14 @@
 'use client';
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from '@react-google-maps/api';
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { FaChevronCircleRight, FaChevronCircleLeft } from "react-icons/fa";
+import { FaChevronCircleRight, FaChevronCircleLeft, FaMapMarkerAlt, FaBed, FaBath, FaRulerCombined } from "react-icons/fa";
 import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { IoPinOutline } from "react-icons/io5";
 
 
 import { useLanguage } from '@/context/LanguageContext';
+import Image from 'next/image';
 
 const governorates = [
   { id: 'damascus', name: { en: 'Damascus', ar: 'دمشق' }, center: { lat: 33.510414, lng: 36.278336 }, zoom: 12 },
@@ -305,27 +306,76 @@ export default function GoogleMapComponent({ properties = [] }) {
           );
         })}
 
-        {selectedProperty && (
-          <InfoWindow
-            position={selectedProperty.pinLocation || {
-              lat: selectedProperty.latitude,
-              lng: selectedProperty.longitude
-            }}
-            onCloseClick={() => setSelectedProperty(null)}
-          >
-            <div className="max-w-xs p-2">
-              <h3 className="font-bold text-lg mb-1">{selectedProperty.title}</h3>
-              <p className="text-gray-700">${selectedProperty.price?.toLocaleString()}</p>
-              <p className="text-gray-600 mb-2">{selectedProperty.location}</p>
-              <a
-                href={`/properties/${selectedProperty._id}`}
-                className="text-blue-600 hover:underline"
-              >
-                {t.viewDetails}
-              </a>
-            </div>
-          </InfoWindow>
+{selectedProperty && (
+  <InfoWindow
+    position={selectedProperty.pinLocation || {
+      lat: selectedProperty.latitude,
+      lng: selectedProperty.longitude
+    }}
+    onCloseClick={() => setSelectedProperty(null)}
+    options={{ maxWidth: 300 }}
+  >
+    <div className="w-[280px]">
+      {/* Property Image */}
+      <div className="relative h-40 w-full">
+        {selectedProperty.images?.length > 0 ? (
+          <Image
+            src={selectedProperty.images[0]}
+            alt={selectedProperty.title}
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+        ) : (
+          <div className="bg-gray-200 border-2 border-dashed w-full h-full flex items-center justify-center">
+            <span className="text-gray-500">No Image</span>
+          </div>
         )}
+      </div>
+
+      {/* Property Details */}
+      <div className="p-3 bg-white">
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="text-md font-bold text-gray-800 line-clamp-1">
+            {selectedProperty.title}
+          </h3>
+          <span className="text-md font-bold text-[#375171] whitespace-nowrap">
+            ${selectedProperty.price?.toLocaleString()}
+          </span>
+        </div>
+
+        <div className="flex items-center text-gray-600 mb-2 text-sm">
+          <FaMapMarkerAlt className="mr-1 text-[#375171]" />
+          <span className="line-clamp-1">
+            {selectedProperty.location}
+          </span>
+        </div>
+
+        <div className="flex justify-between text-sm">
+          <div className="flex items-center text-gray-600">
+            <FaBed className="mr-1 text-[#375171]" />
+            <span>{selectedProperty.bedrooms}</span>
+          </div>
+          <div className="flex items-center text-gray-600">
+            <FaBath className="mr-1 text-[#375171]" />
+            <span>{selectedProperty.bathrooms}</span>
+          </div>
+          <div className="flex items-center text-gray-600">
+            <FaRulerCombined className="mr-1 text-[#375171]" />
+            <span>{selectedProperty.area} m²</span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => router.push(`/properties/${selectedProperty._id}`)}
+          className="mt-3 w-full bg-[#375171] hover:bg-[#2d4360] text-white py-1.5 rounded-md text-sm font-medium cursor-pointer"
+        >
+          {t.viewDetails || 'View Details'}
+        </button>
+      </div>
+    </div>
+  </InfoWindow>
+)}
       </GoogleMap>
 
       <button

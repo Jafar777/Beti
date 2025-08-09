@@ -40,9 +40,7 @@ export default function DashboardLayout({ children }) {
     }
   }, [status, router]);
 
-  useEffect(() => {
-    setSidebarOpen(pathname !== '/dashboard');
-  }, [pathname]);
+
 
   if (status === "loading" || !session) {
     return (
@@ -83,7 +81,7 @@ export default function DashboardLayout({ children }) {
                 <Link
                   href="/dashboard"
                   className={`flex items-center space-x-3 p-3 rounded-lg hover:bg-[#2d4360] transition ${
-                    pathname === '/dashboard' ? 'bg-[#2d4360]' : ''
+                     isActive('/dashboard') ? 'bg-[#2d4360]' : ''
                   }`}
                 >
                   <AiFillDashboard className="text-xl" />
