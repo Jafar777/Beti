@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/context/LanguageContext";
 import LocationPickerMap from '@/components/LocationPickerMap';
-import { FaTrash, FaHome, FaFileContract, FaPlug, FaWater, FaMapMarkerAlt, FaImages, FaFileAlt, FaBed, FaBath, FaRulerCombined } from "react-icons/fa";
+import { FaTrash, FaHome, FaFileContract, FaPlug, FaWater, FaMapMarkerAlt, FaImages, FaFileAlt, FaBed, FaBath, FaRulerCombined, FaCheck } from "react-icons/fa";
 import { TbAirConditioning, TbParking, TbContract } from "react-icons/tb";
 import { MdOutlineLocalPolice, MdOutlineDescription } from "react-icons/md";
 import { PiSolarRoofFill } from "react-icons/pi";
