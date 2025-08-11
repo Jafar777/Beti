@@ -13,7 +13,7 @@ export const metadata = {
   alternates: {
     canonical: '/',
     languages: {
-      'ar': 'en',
+      'ar': '/',
     },
   },
   openGraph: {
@@ -23,7 +23,7 @@ export const metadata = {
     siteName: 'بيتي',
     images: [
       {
-        url: '../assets/Fulllogo.svg',
+        url: '/assets/Fulllogo.svg', // Fixed path
         width: 1200,
         height: 630,
         alt: 'منصة بيتي العقارية - واجهة باللغة العربية',
@@ -36,7 +36,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'بيتي | منصة العقارات الرائدة في سوريا',
     description: 'حلول عقارية متكاملة لسوق العقارات السوري - بيع، شراء، تأجير',
-    images: ['../assets/Fulllogo.svg'],
+    images: ['/assets/Fulllogo.svg'], // Fixed path
   },
   icons: {
     icon: '/favicon.ico',
@@ -59,8 +59,8 @@ export default function RootLayout({ children }) {
             "@context": "https://schema.org",
             "@type": "RealEstateAgent",
             "name": "بيتي",
-            "image": "/logo.png",
-            "@id": "",
+            "image": "/assets/logo.png", // Fixed path
+            "@id": "https://www.beti.homes",
             "url": "https://www.beti.homes",
             "telephone": "+963-XXXXXXXXXX",
             "address": {
