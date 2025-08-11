@@ -19,6 +19,8 @@ import { PiSolarRoofFill } from "react-icons/pi";
 import { MdOutlineDescription } from "react-icons/md";
 import { MdOutlineLocalPolice } from "react-icons/md";
 import { IoIosStar } from "react-icons/io";
+import { getLocationName } from '@/data/syriaLocations';
+
 
 
 export default function PropertyDetails({ property, isLikedByCurrentUser }) {
@@ -40,13 +42,13 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
     }
   }, [isLikedByCurrentUser]);
   useEffect(() => {
-  // Dispatch event to hide loading overlay
-  window.dispatchEvent(new CustomEvent('routechangecomplete'));
-  
-  return () => {
-    // Cleanup if needed
-  };
-}, []);
+    // Dispatch event to hide loading overlay
+    window.dispatchEvent(new CustomEvent('routechangecomplete'));
+
+    return () => {
+      // Cleanup if needed
+    };
+  }, []);
 
   const images = property.images || [];
   const owner = property.owner || {};
@@ -218,8 +220,8 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
           onClick={handleLike}
           disabled={isLiking}
           className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors cursor-pointer ${isLiked
-              ? 'bg-red-50 text-red-600 border border-red-200'
-              : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
+            ? 'bg-red-50 text-red-600 border border-red-200'
+            : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
             }`}
         >
           {isLiked ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
@@ -251,14 +253,18 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
             <div className="flex items-center mt-2 text-gray-600">
               <FaMapMarkerAlt className="mr-1 text-blue-600" />
               <span>
-                {locationNames.district}, {locationNames.city}, {locationNames.governorate}
+                <span className='mr-1 ml-1'>{getLocationName(property.district, 'district', language)} -</span>
+                <span className='mr-1 ml-1'>{getLocationName(property.governorate, 'governorate', language)} -</span>
+                                <span className='mr-1 ml-1'>{getLocationName(property.city, 'city', language)}</span>
+
+
               </span>
             </div>
           </div>
 
           <div className="bg-blue-50 px-4 py-3 rounded-lg">
             <div className="flex items-center">
-              <span className="text-lg font-medium text-blue-800 mr-2">
+              <span className="text-lg font-medium text-blue-800 mr-2 ml-2">
                 {t.price}:
               </span>
               <span className="text-2xl font-bold text-green-600">
@@ -267,7 +273,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
             </div>
 
             <div className="flex items-center mt-1">
-              <TbContract className="text-blue-600 mr-2" />
+              <TbContract className="text-blue-600 mr-2 ml-2" />
               <span className="font-medium text-blue-800">
                 {property.contractType === 'rent' ? t.rent :
                   property.contractType === 'sale' ? t.sale : t.mortgage}
@@ -411,7 +417,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
               {/* Ownership Type */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <TbContract className="text-blue-600 mr-2" />
+                  <TbContract className="text-blue-600 mr-2 ml-2" />
                   <span className="text-gray-600">{t.ownershipType}:</span>
                 </div>
                 <span className="text-gray-950 font-medium">
@@ -429,7 +435,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
               {/* Entrances */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
-                  <BiSolidDoorOpen className="text-blue-600 mr-2" />
+                  <BiSolidDoorOpen className="text-blue-600 mr-2 ml-2" />
                   <span className="text-gray-600">{t.entrances}:</span>
                 </div>
                 <span className="text-gray-950 font-medium">{property.entrances}</span>
@@ -438,7 +444,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
               {/* Violations */}
               <div className="flex items-center justify-between ">
                 <div className="flex items-center">
-                  <MdOutlineLocalPolice className="text-blue-600 mr-2" />
+                  <MdOutlineLocalPolice className="text-blue-600 mr-2 ml-2" />
                   <span className="text-gray-600">{t.violations}:</span>
                 </div>
                 <span className="font-medium text-gray-950">
@@ -470,7 +476,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
               </div>
 
               <div className="flex items-center">
-                <IoWater className="text-blue-500 mr-3" />
+                <IoWater className="text-blue-500 mr-3 ml-3" />
                 <span className="text-gray-600 flex-grow">{t.water}:</span>
                 <span className="font-medium text-gray-950">
                   {property.water === 'no_water' ? t.noWater :
@@ -480,7 +486,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
               </div>
 
               <div className="flex items-center">
-                <TbAirConditioning className="text-blue-500 mr-3" />
+                <TbAirConditioning className="text-blue-500 mr-3 ml-3" />
                 <span className="text-gray-600 flex-grow">{t.airConditioning}:</span>
                 <span className="font-medium text-gray-950">
                   {property.airConditioning === 'none' ? t.none :
@@ -494,7 +500,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
               </div>
 
               <div className="flex items-center">
-                <FaSquareParking className="text-blue-500 mr-3" />
+                <FaSquareParking className="text-blue-500 mr-3 ml-3" />
                 <span className="text-gray-600 flex-grow">{t.privateParking}:</span>
                 <span className="font-medium text-gray-950">
                   {property.privateParking ? t.yes : t.no}
@@ -502,7 +508,7 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
               </div>
 
               <div className="flex items-center">
-                <PiSolarRoofFill className="text-blue-500 mr-3" />
+                <PiSolarRoofFill className="text-blue-500 mr-3 ml-3" />
                 <span className="text-gray-600 flex-grow">{t.rooftopOwnership}:</span>
                 <span className="font-medium text-gray-950">
                   {property.rooftopOwnership === 'shared' ? t.shared : t.private}
@@ -515,14 +521,14 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
           {/* Owner Contact */}
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <h2 className="text-xl font-semibold text-gray-900 flex items-center mb-4">
-              <span className="bg-blue-100 p-2 rounded-full mr-3">
+              <span className="bg-blue-100 p-2 rounded-full mr-3 ml-3">
                 <FaEnvelope className="text-blue-600" />
               </span>
               {t.contactOwner || 'Contact Owner'}
             </h2>
 
             <div className="flex items-center mb-4">
-              <div className="w-16 h-16 rounded-full overflow-hidden mr-4 border-2 border-blue-200">
+              <div className="w-16 h-16 rounded-full overflow-hidden mr-4 ml-4 border-2 border-blue-200">
                 {owner.image ? (
                   <Image
                     src={owner.image}

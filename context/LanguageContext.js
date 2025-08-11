@@ -449,7 +449,8 @@ export const LanguageProvider = ({ children }) => {
       updating : 'جاري التحديث',
       videoUploaded : 'فيديو مرفوع',
       delete : 'حذف',
-      edit:'تعديل'
+      edit:'تعديل',
+      share:'مشاركة العقار'
 
 
     }
