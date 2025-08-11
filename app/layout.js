@@ -13,7 +13,7 @@ export const metadata = {
   alternates: {
     canonical: '/',
     languages: {
-      'ar': '/',
+      'ar': 'en',
     },
   },
   openGraph: {
@@ -23,7 +23,7 @@ export const metadata = {
     siteName: 'بيتي',
     images: [
       {
-        url: '/og-arabic-image.jpg',
+        url: '../assets/Fulllogo.svg',
         width: 1200,
         height: 630,
         alt: 'منصة بيتي العقارية - واجهة باللغة العربية',
@@ -36,7 +36,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'بيتي | منصة العقارات الرائدة في سوريا',
     description: 'حلول عقارية متكاملة لسوق العقارات السوري - بيع، شراء، تأجير',
-    images: ['/twitter-arabic-image.jpg'],
+    images: ['../assets/Fulllogo.svg'],
   },
   icons: {
     icon: '/favicon.ico',
