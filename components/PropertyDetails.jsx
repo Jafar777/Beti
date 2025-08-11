@@ -161,17 +161,22 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
     });
   };
 
-  const handleWhatsApp = () => {
-    if (!session) {
-      signIn();
-      return;
-    }
+const handleWhatsApp = () => {
+  if (!session) {
+    signIn();
+    return;
+  }
 
-    const message = encodeURIComponent(
-      `Hello, I'm interested in your property: ${property.title} (${window.location.origin}/properties/${property._id})`
-    );
-    window.open(`https://wa.me/${owner.mobile}?text=${message}`, '_blank');
-  };
+  const message = encodeURIComponent(
+    `Hello, I'm interested in your property: ${property.title} (${window.location.origin}/properties/${property._id})`
+  );
+
+  // Ensure no leading zero in the mobile number
+  const formattedMobile = owner.mobile.replace(/^0+/, '');
+  
+  window.open(`https://wa.me/963${formattedMobile}?text=${message}`, '_blank');
+};
+
 
   return (
     <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-6xl mx-auto">
