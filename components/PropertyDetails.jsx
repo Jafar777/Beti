@@ -126,9 +126,11 @@ export default function PropertyDetails({ property, isLikedByCurrentUser }) {
     try {
       const response = await fetch('/api/properties/like', {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ propertyId: property._id })
       });
+      
 
       if (!response.ok) {
         const errorData = await response.json();
