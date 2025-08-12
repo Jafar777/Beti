@@ -313,9 +313,12 @@ export default function GoogleMapComponent({ properties = [] }) {
       lng: selectedProperty.longitude
     }}
     onCloseClick={() => setSelectedProperty(null)}
-    options={{ maxWidth: 300 }}
+    options={{ 
+      maxWidth: 280,
+      pixelOffset: new window.google.maps.Size(0, -40)
+    }}
   >
-    <div className="w-[280px]">
+    <div className="w-full max-w-[280px]">
       {/* Property Image */}
       <div className="relative h-40 w-full">
         {selectedProperty.images?.length > 0 ? (
@@ -324,51 +327,51 @@ export default function GoogleMapComponent({ properties = [] }) {
             alt={selectedProperty.title}
             fill
             className="object-cover"
-            sizes="100vw"
+            sizes="(max-width: 640px) 90vw, 280px"
           />
         ) : (
           <div className="bg-gray-200 border-2 border-dashed w-full h-full flex items-center justify-center">
-            <span className="text-gray-500">No Image</span>
+            <span className="text-gray-500">{t.noImage || 'No Image'}</span>
           </div>
         )}
       </div>
 
       {/* Property Details */}
       <div className="p-3 bg-white">
-        <div className="flex justify-between items-start mb-1">
-          <h3 className="text-md font-bold text-gray-800 line-clamp-1">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 mb-1">
+          <h3 className="text-sm sm:text-md font-bold text-gray-800 line-clamp-2 sm:line-clamp-1">
             {selectedProperty.title}
           </h3>
-          <span className="text-md font-bold text-[#375171] whitespace-nowrap">
+          <span className="text-sm sm:text-md font-bold text-[#375171] whitespace-nowrap">
             ${selectedProperty.price?.toLocaleString()}
           </span>
         </div>
 
-        <div className="flex items-center text-gray-600 mb-2 text-sm">
-          <FaMapMarkerAlt className="mr-1 text-[#375171]" />
+        <div className="flex items-center text-gray-600 mb-2 text-xs sm:text-sm">
+          <FaMapMarkerAlt className="mr-1 text-[#375171] flex-shrink-0" />
           <span className="line-clamp-1">
             {selectedProperty.location}
           </span>
         </div>
 
-        <div className="flex justify-between text-sm">
+        <div className="flex justify-between text-xs sm:text-sm mb-2">
           <div className="flex items-center text-gray-600">
-            <FaBed className="mr-1 text-[#375171]" />
+            <FaBed className="mr-1 text-[#375171] flex-shrink-0" />
             <span>{selectedProperty.bedrooms}</span>
           </div>
           <div className="flex items-center text-gray-600">
-            <FaBath className="mr-1 text-[#375171]" />
+            <FaBath className="mr-1 text-[#375171] flex-shrink-0" />
             <span>{selectedProperty.bathrooms}</span>
           </div>
           <div className="flex items-center text-gray-600">
-            <FaRulerCombined className="mr-1 text-[#375171]" />
+            <FaRulerCombined className="mr-1 text-[#375171] flex-shrink-0" />
             <span>{selectedProperty.area} m²</span>
           </div>
         </div>
 
         <button
           onClick={() => router.push(`/properties/${selectedProperty._id}`)}
-          className="mt-3 w-full bg-[#375171] hover:bg-[#2d4360] text-white py-1.5 rounded-md text-sm font-medium cursor-pointer"
+          className="w-full bg-[#375171] hover:bg-[#2d4360] text-white py-1.5 rounded-md text-xs sm:text-sm font-medium cursor-pointer"
         >
           {t.viewDetails || 'View Details'}
         </button>
