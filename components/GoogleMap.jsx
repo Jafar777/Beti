@@ -222,8 +222,8 @@ export default function GoogleMapComponent({ properties = [] }) {
     };
   }, []);
   const handlePinClick = (property) => {
-      setSelectedProperty(property);
-    
+    setSelectedProperty(property);
+
   };
 
   return isLoaded ? (
@@ -242,8 +242,8 @@ export default function GoogleMapComponent({ properties = [] }) {
                 key={gov.id}
                 onClick={() => zoomToGovernorate(gov.id)}
                 className={`py-2 px-3 cursor-pointer rounded-md text-sm font-medium transition-colors ${activeGov === gov.id
-                    ? 'bg-[#375171] text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
+                  ? 'bg-[#375171] text-white'
+                  : 'bg-gray-100 hover:bg-gray-200 text-gray-800'
                   }`}
               >
                 {gov.name[language] || gov.name.en}
@@ -256,8 +256,8 @@ export default function GoogleMapComponent({ properties = [] }) {
       <button
         onClick={togglePanel}
         className={`absolute z-10 bg-[#375171] p-2 rounded-full shadow-md hover:bg-[#2d4360] cursor-pointer panel-toggle-button ${isPanelOpen
-            ? 'top-1/2 left-[216px] transform -translate-y-1/2'
-            : 'top-1/2 left-4 transform -translate-y-1/2'
+          ? 'top-1/2 left-[216px] transform -translate-y-1/2'
+          : 'top-1/2 left-4 transform -translate-y-1/2'
           }`}
         style={{ zIndex: 20 }}
       >
@@ -306,76 +306,76 @@ export default function GoogleMapComponent({ properties = [] }) {
           );
         })}
 
-{selectedProperty && (
-  <InfoWindow
-    position={selectedProperty.pinLocation || {
-      lat: selectedProperty.latitude,
-      lng: selectedProperty.longitude
-    }}
-    onCloseClick={() => setSelectedProperty(null)}
-    options={{ maxWidth: 300 }}
-  >
-    <div className="w-[280px]">
-      {/* Property Image */}
-      <div className="relative h-40 w-full">
-        {selectedProperty.images?.length > 0 ? (
-          <Image
-            src={selectedProperty.images[0]}
-            alt={selectedProperty.title}
-            fill
-            className="object-cover"
-            sizes="100vw"
-          />
-        ) : (
-          <div className="bg-gray-200 border-2 border-dashed w-full h-full flex items-center justify-center">
-            <span className="text-gray-500">No Image</span>
-          </div>
+        {selectedProperty && (
+          <InfoWindow
+            position={selectedProperty.pinLocation || {
+              lat: selectedProperty.latitude,
+              lng: selectedProperty.longitude
+            }}
+            onCloseClick={() => setSelectedProperty(null)}
+            options={{ maxWidth: 300 }}
+          >
+            <div className="lg:w-[280px] md:w-[280px]">
+              {/* Property Image */}
+              <div className="relative h-40 w-full">
+                {selectedProperty.images?.length > 0 ? (
+                  <Image
+                    src={selectedProperty.images[0]}
+                    alt={selectedProperty.title}
+                    fill
+                    className="object-cover"
+                    sizes="100vw"
+                  />
+                ) : (
+                  <div className="bg-gray-200 border-2 border-dashed w-full h-full flex items-center justify-center">
+                    <span className="text-gray-500">No Image</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Property Details */}
+              <div className="p-3 bg-white ">
+                <div className="flex justify-between items-start mb-1">
+                  <h3 className="text-md font-bold text-gray-800 line-clamp-1">
+                    {selectedProperty.title}
+                  </h3>
+                  <span className="text-md font-bold text-[#375171] whitespace-nowrap">
+                    ${selectedProperty.price?.toLocaleString()}
+                  </span>
+                </div>
+
+                <div className="flex items-center text-gray-600 mb-2 text-sm">
+                  <FaMapMarkerAlt className="mr-1 text-[#375171]" />
+                  <span className="line-clamp-1">
+                    {selectedProperty.location}
+                  </span>
+                </div>
+
+                <div className="flex justify-between text-sm">
+                  <div className="flex items-center text-gray-600">
+                    <FaBed className="mr-1 text-[#375171]" />
+                    <span>{selectedProperty.bedrooms}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FaBath className="mr-1 text-[#375171]" />
+                    <span>{selectedProperty.bathrooms}</span>
+                  </div>
+                  <div className="flex items-center text-gray-600">
+                    <FaRulerCombined className="mr-1 text-[#375171]" />
+                    <span>{selectedProperty.area} m²</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => router.push(`/properties/${selectedProperty._id}`)}
+                  className="mt-3 lg:w-full md:w-full p-2 bg-[#375171] hover:bg-[#2d4360] text-white py-1.5 rounded-md text-sm font-medium cursor-pointer"
+                >
+                  {t.viewDetails || 'View Details'}
+                </button>
+              </div>
+            </div>
+          </InfoWindow>
         )}
-      </div>
-
-      {/* Property Details */}
-      <div className="p-3 bg-white">
-        <div className="flex justify-between items-start mb-1">
-          <h3 className="text-md font-bold text-gray-800 line-clamp-1">
-            {selectedProperty.title}
-          </h3>
-          <span className="text-md font-bold text-[#375171] whitespace-nowrap">
-            ${selectedProperty.price?.toLocaleString()}
-          </span>
-        </div>
-
-        <div className="flex items-center text-gray-600 mb-2 text-sm">
-          <FaMapMarkerAlt className="mr-1 text-[#375171]" />
-          <span className="line-clamp-1">
-            {selectedProperty.location}
-          </span>
-        </div>
-
-        <div className="flex justify-between text-sm">
-          <div className="flex items-center text-gray-600">
-            <FaBed className="mr-1 text-[#375171]" />
-            <span>{selectedProperty.bedrooms}</span>
-          </div>
-          <div className="flex items-center text-gray-600">
-            <FaBath className="mr-1 text-[#375171]" />
-            <span>{selectedProperty.bathrooms}</span>
-          </div>
-          <div className="flex items-center text-gray-600">
-            <FaRulerCombined className="mr-1 text-[#375171]" />
-            <span>{selectedProperty.area} m²</span>
-          </div>
-        </div>
-
-        <button
-          onClick={() => router.push(`/properties/${selectedProperty._id}`)}
-          className="mt-3 w-full bg-[#375171] hover:bg-[#2d4360] text-white py-1.5 rounded-md text-sm font-medium cursor-pointer"
-        >
-          {t.viewDetails || 'View Details'}
-        </button>
-      </div>
-    </div>
-  </InfoWindow>
-)}
       </GoogleMap>
 
       <button
