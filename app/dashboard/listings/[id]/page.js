@@ -155,7 +155,7 @@ export default function EditListingPage() {
         maxFiles: 10,
         resourceType: 'image',
         clientAllowedFormats: ['jpg', 'png', 'jpeg', 'webp'],
-        maxImageFileSize: 5000000,
+        maxImageFileSize: 10000000,
         cropping: true,
         croppingAspectRatio: 16/9,
         showSkipCropButton: false
