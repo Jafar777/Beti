@@ -3,6 +3,7 @@ import ClientProviders from './ClientProviders';
 import PageLoader from '@/components/PageLoader';
 import LoadingOverlay from '@/components/LoadingOverlay';
 import { PropertiesProvider } from '@/context/PropertiesContext';
+const BASE_URL = "https://www.beti.homes"; // Define at top of file
 
 export const metadata = {
   title: 'بيتي | منصة العقارات الرائدة في سوريا - شراء، بيع، تأجير',
@@ -23,7 +24,7 @@ export const metadata = {
     siteName: 'بيتي',
     images: [
       {
-        url: '/assets/Fulllogo.svg', // Fixed path
+        url: `${BASE_URL}/assets/Fulllogo.svg`, // Fixed path
         width: 1200,
         height: 630,
         alt: 'منصة بيتي العقارية - واجهة باللغة العربية',
@@ -36,7 +37,7 @@ export const metadata = {
     card: 'summary_large_image',
     title: 'بيتي | منصة العقارات الرائدة في سوريا',
     description: 'حلول عقارية متكاملة لسوق العقارات السوري - بيع، شراء، تأجير',
-    images: ['/assets/Fulllogo.svg'], // Fixed path
+    images:  [`${BASE_URL}/assets/Fulllogo.svg`],  // Fixed path
   },
   icons: {
     icon: '/favicon.ico',
