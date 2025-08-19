@@ -303,6 +303,13 @@ export const syriaLocations = {
           ]
         },
         {
+          id: 'betsahm',
+          name: { en: 'betsahm', ar: 'بيت سحم' },
+          districts: [
+            { id: 'betsahm', name: { en: 'betsahm', ar: ' ييت سحم' } },
+          ]
+        },
+        {
           id: 'darayya',
           name: { en: 'Darayya', ar: 'داريا' },
           districts: [
