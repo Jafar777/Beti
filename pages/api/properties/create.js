@@ -2,15 +2,12 @@ import Property from '@/models/Property';
 import User from '@/models/User';
 import dbConnect from '@/lib/dbConnect';
 import { getToken } from 'next-auth/jwt';
-import { canCreateListing, canFeatureListing } from '@/utils/subscription';
 
 // Define valid options for enums
 const validACOptions = ['normal_split','inverter_split','central','concealed','window_ac','desert_ac','none'];
 const validElectricityOptions = ['no_electricity','solar_panels','amber_subscription','only_government_electricity'];
 const validWaterOptions = ['drinkable','non_drinkable','no_water'];
 const validRooftopOptions = ['shared','private'];
-
-
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -28,12 +25,8 @@ export default async function handler(req, res) {
     const user = await User.findById(token.sub);
     if (!user) return res.status(404).json({ error: 'User not found' });
     
-    if (!canCreateListing(user)) {
-      return res.status(403).json({ 
-        error: 'Listing limit reached. Upgrade your plan.' 
-      });
-    }
-
+    // REMOVED: Subscription check since users can now create unlimited properties
+    
     const { 
       title, description, price, location, images, propertyType,
       bedrooms, bathrooms, area, latitude, longitude, pinLocation,
@@ -77,7 +70,7 @@ export default async function handler(req, res) {
       electricity,
       water,
       violations: Boolean(violations),
-      rooftopOwnership:String(rooftopOwnership),
+      rooftopOwnership: String(rooftopOwnership),
       video,
       owner: user._id,
       contractType,
@@ -86,18 +79,12 @@ export default async function handler(req, res) {
       city,
       district,
       status: 'active',
-      isFeatured: canFeatureListing(user)
+      isFeatured: false // Default to false, can be purchased separately
     });
     
     await property.save();
     
-    // Update user's listing count
-    user.subscription.listingsUsed += 1;
-    if (property.isFeatured) {
-      user.subscription.featuredListings.push(property._id);
-    }
-    
-    await user.save();
+    // REMOVED: Subscription tracking code
     
     res.status(201).json(property);
   } catch (error) {

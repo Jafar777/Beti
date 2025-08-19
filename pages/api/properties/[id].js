@@ -134,11 +134,6 @@ export default async function handler(req, res) {
       await property.deleteOne();
 
       // Update user's listing count
-      const user = await User.findById(token.sub);
-      if (user) {
-        user.subscription.listingsUsed = Math.max(0, user.subscription.listingsUsed - 1);
-        await user.save();
-      }
 
       return res.status(200).json({ message: 'Property deleted' });
     }

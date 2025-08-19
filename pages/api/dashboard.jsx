@@ -1,3 +1,4 @@
+// In pages/api/dashboard.jsx
 'use client';
 import { useSession } from 'next-auth/react';
 
@@ -14,7 +15,7 @@ export default function Dashboard() {
             Welcome, {session.user.firstName} {session.user.lastName}
           </h2>
           <p className="mb-2"><strong>Mobile:</strong> {session.user.mobile}</p>
-          <p><strong>Subscription Plan:</strong> {session.user.subscription?.plan}</p>
+          <p><strong>Coins:</strong> {session.user.coins || 0}</p>
         </div>
       ) : (
         <p>Please sign in to access your dashboard</p>
